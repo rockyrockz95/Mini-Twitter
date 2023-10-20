@@ -1,2 +1,2 @@
 # Mini-Twitter
-# Files for mock twitter platform
+Files for mock twitter platform
