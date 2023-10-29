@@ -8,6 +8,9 @@ app = Flask(__name__)
 def home():
     return render_template("home.html")
 
+@app.route("/account")
+def account():
+    return render_template("account.html")
 
 @app.route("/login")
 def login():
@@ -17,11 +20,6 @@ def login():
 @app.route("/register")
 def register():
     return "<h1>Sign Up Here<h1>"
-
-
-@app.route("/account")
-def account():
-    return "<h1>Include Account Setting<h1>"
 
 
 if __name__ == "__main__":
