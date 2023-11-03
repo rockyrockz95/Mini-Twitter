@@ -7,6 +7,9 @@ app = Flask(__name__)
 # standard practice in Flask for security
 app.config["SECRET_KEY"] = "c5d8384942a409d54c42eca4512864f7"
 
+# Load data @ startup
+User.load_users()
+
 
 @app.route("/")
 @app.route("/home")
