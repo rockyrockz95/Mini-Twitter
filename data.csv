@@ -1,3 +1,4 @@
-,username,email,image_file,password,likes,posts
-0,test@test.com,tester001,,password,[],[]
-1,admin@log.com,admin,,password,[],[]
+email,username,password,image_file,likes,posts
+admin@log.com,admin,password,,[],[]
+test@test.com,test001,password,,[],[]
+coreyms@gmail.com,CoreyMs,youtube,,[],[]
