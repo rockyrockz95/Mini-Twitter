@@ -5,7 +5,7 @@ import pandas as pd
 from flask_login import LoginManager, UserMixin
 
 
-# TODO: Find out if pandas allow unique key classification/establish relationships
+# TODO: Implement unique key classification/establish relationships, post_id/author with User
 
 
 """ UserMixin - manages session user for us
@@ -14,6 +14,7 @@ from flask_login import LoginManager, UserMixin
        # is_anonymous
        # get_id()
 """
+# TODO: Check if UserMixin is necessary with properties explicitly defined
 
 
 class User(UserMixin):
@@ -28,7 +29,7 @@ class User(UserMixin):
 
     users = pd.DataFrame()
 
-    # for explicitly loading at startup *** No longer necessary --> keeping for testing
+    # for explicitly loading at startup
     @classmethod
     def load_users(cls):
         # added indices causing issues
@@ -36,7 +37,6 @@ class User(UserMixin):
 
     @classmethod
     def createUser(cls, email, username, password):
-        # should not be used in loop --> O(n)
         cls.load_users()
         # trying to invoke flask_login for this user
         new_user = User(email, username, password, "", [], [])
@@ -45,7 +45,7 @@ class User(UserMixin):
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
         cls.users.to_csv("data.csv", index=False)
-        print("DataFrame columns: ", cls.users.columns)  # for testing
+        print("Registered users: ", cls.users)
 
     def get_id(self):
         return self.email
@@ -72,11 +72,6 @@ class User(UserMixin):
         return True
 
 
-# TODO: Address issue of maintaining data
-# On app start retrieve user data -- Might be redundant (revisit at post implementation)
-# write user data to a file when registering -- check
-# use csv DF to add authentication
-
 """ TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
     - Inner class?
     - Another cloumn? """
@@ -89,6 +84,7 @@ class User(UserMixin):
 
 """ Skeleton of post structure
 posts = pd.DataFrame(columns=['author','date', 'content', 'likes'])
+    # Give posts an id? --> Easier to hold in User csv
 """
 
 """ Sources: 
