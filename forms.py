@@ -1,8 +1,16 @@
 from flask_wtf import FlaskForm
-from wtforms import FileField, StringField, PasswordField, SubmitField, BooleanField
+from wtforms import (
+    FileField,
+    StringField,
+    PasswordField,
+    SubmitField,
+    BooleanField,
+    ValidationError,
+)
 from flask_wtf.file import FileAllowed
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from data import User
+from flask_login import current_user
 
 
 # creating each form as a class, possible using wtforms package
@@ -24,6 +32,21 @@ class RegistrationForm(FlaskForm):
     )
     submit = SubmitField("Sign Up")
 
+    # Check for username/email already taken
+    def validate_email(self, email):
+        # return all rows that fit the search
+        user = User.users[User.users["email"] == email.data]
+        if not user.empty:
+            # custom validation error
+            raise ValidationError(
+                "Email already used. Please choose another or login to existing account"
+            )
+
+    def validate_username(self, username):
+        user = User.users[User.users["username"] == username.data]
+        if not user.empty:
+            raise ValidationError("Username taken. Please choose another")
+
 
 class EditAccountForm(FlaskForm):
     username = StringField(
@@ -34,7 +57,21 @@ class EditAccountForm(FlaskForm):
     picture = FileField(
         "Update Profile Picture", validators=[FileAllowed(["jpg", "png"])]
     )
-    # TODO: Insert checks for username/email already used
+    submit = SubmitField("Edit Account")
+
+    def validate_email(self, email):
+        if email.data != current_user.email:
+            user = User.users[User.users["email"] == email.data]
+            if not user.empty:
+                raise ValidationError(
+                    "Email already used. Please choose another or login to existing account"
+                )
+
+    def validate_username(self, username):
+        if username.data != current_user.username:
+            user = User.users[User.users["username"] == username.data]
+            if not user.empty:
+                raise ValidationError("Username taken. Please choose another")
 
 
 """ both forms not not fully implemented yet in reset_request.html

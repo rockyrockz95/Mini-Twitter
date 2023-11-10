@@ -41,7 +41,8 @@ class User(UserMixin):
         # trying to invoke flask_login for this user
         new_user = User(email, username, password, "", [], [])
         new_user = pd.DataFrame(
-            [[email, username, password, "", [], []]], columns=cls.users.columns
+            [[email, username, password, "static\default.png", [], []]],
+            columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
         cls.users.to_csv("data.csv", index=False)
