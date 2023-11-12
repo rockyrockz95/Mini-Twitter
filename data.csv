@@ -1,4 +1,5 @@
 email,username,password,image_file,likes,posts
-admin@log.com,admin,password,,[],[]
-test@test.com,test001,password,,[],[]
-coreyms@gmail.com,CoreyMs,youtube,,[],[]
+admin@gmail.com,admin,password,static/profile_pics\oscar.jpg,[],[]
+test@test.com,test001,password,static\profile_pics\default.png,[],[]
+coreyms@gmail.com,CoreyMs,youtube,static\profile_pics\default.png,[],[]
+user@gamil.com,user,password,static/profile_pics\default.png,[],[]

@@ -34,6 +34,7 @@ class EditAccountForm(FlaskForm):
     picture = FileField(
         "Update Profile Picture", validators=[FileAllowed(["jpg", "png"])]
     )
+    submit = SubmitField("Edit Account")
     # TODO: Insert checks for username/email already used
 
 

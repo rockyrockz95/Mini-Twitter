@@ -36,16 +36,42 @@ class User(UserMixin):
         cls.users = pd.read_csv("data.csv")
 
     @classmethod
-    def createUser(cls, email, username, password):
+    def createUser(cls, email, username, password, image_file="static\default.png"):
         cls.load_users()
         # trying to invoke flask_login for this user
         new_user = User(email, username, password, "", [], [])
         new_user = pd.DataFrame(
-            [[email, username, password, "", [], []]], columns=cls.users.columns
+            [[email, username, password, image_file, [], []]],
+            columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
         cls.users.to_csv("data.csv", index=False)
         print("Registered users: ", cls.users)
+
+    @classmethod
+    def updateUser(cls, curr_user):
+        cls.load_users()
+        # find the index of the user with an existing email
+        # have to use email as search parameter if username is being changes, vice-versa
+        if not cls.users[cls.users["username"] == curr_user.username].empty:
+            user_index = cls.users[cls.users["username"] == curr_user.username].index[0]
+        elif not cls.users[cls.users["email"] == curr_user.email].empty:
+            user_index = cls.users[cls.users["email"] == curr_user.email].index[0]
+        # not condition: iloc returns IndexError for empty dataFrame
+
+        # update the user parameterin the databases
+        if user_index is not None:
+            cls.users.loc[user_index] = [
+                curr_user.email,
+                curr_user.username,
+                curr_user.password,
+                curr_user.image_file,
+                curr_user.likes,
+                curr_user.posts,
+            ]
+            cls.users.to_csv("data.csv", index=False)
+        else:
+            print("Unable to update unknown user")
 
     def get_id(self):
         return self.email

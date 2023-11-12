@@ -25,9 +25,24 @@ login_manager.login_view = "login"
 @login_manager.user_loader
 # returns the integer described by the user_id, where user_id = email
 def user_loader(user_id):
-    # integer indexed slicing of user dataFrame with email == user_id
-    # first row that fits the search
-    user_data = User.users[User.users["email"] == user_id].iloc[0]
+    user_data_email = User.users[User.users["email"] == user_id]
+    # assume that both will not be changed/empty at the same time
+    # TODO: changing username logs out the user, MUST FIX
+    # TODO: find way to make this more concise
+    # TODO: username and email can't be changed at the same time, leave as is or fix?
+
+    # if the email is being changed, identify user by their username
+    if not user_data_email.empty:
+        # index slicing, return first row of dataFrame with matching email to user_id
+        user_data = user_data_email.iloc[0]
+    else:
+        user_data_username = User.users[User.users["username"] == user_id]
+        # can't find username || email --> user not in database
+        if user_data_username.empty:
+            print(user_id, "is not associated with any user")
+            return None
+
+        user_data = user_data_username.iloc[0]
 
     user = User(
         email=user_data["email"],
@@ -113,33 +128,41 @@ def reset_request():
 # add pitcure file to sys
 # needed for editing the user profile picture
 def picture_path(image_file):
-    pass
+    img_path = os.path.join("static/profile_pics", image_file.filename)
+    image_file.save(img_path)
+
+    return img_path
 
 
+# TODO: default photo does not show unless explicitly chosen
 @app.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
-    print(current_user.password)
-    """# checking if current_user credentials are acccurate to the logged in user (2x)
-          # user: admin --> password, username, id, image_file works,  works"""
     form = EditAccountForm()
     if form.validate_on_submit():
+        # add new photo if uploaded via form
         if form.picture.data:
-            current_user.image_file = form.picture.data
-            """ Plan: Edit account features
-                   Grab the current user row :
-                      user = User.users[User.users["username"] == form.username.data].iloc[0]
-                      change the parameters entered
-                      put the user in the database with the new parameters
-                      delete the original"""
+            image_file = picture_path(form.picture.data)
+            current_user.image_file = image_file
+
+        # update database based on form data
         current_user.username = form.username.data
         current_user.email = form.email.data
+        User.updateUser(current_user)
+
         flash("Your account has been updated", "info")
         return redirect(url_for("account"))
+
+    # shows the current_user values on page
     elif request.method == "GET":
         form.username.data = current_user.username
         form.email.data = current_user.email
-    image_file = url_for("static", filename="profile_pics/" + current_user.image_file)
+    else:
+        # remember CSRF token for each form
+        print(form.errors)
+
+    # string value for form input
+    image_file = str(current_user.image_file)
     return render_template(
         "account.html", title="Account", image_file=image_file, form=form
     )
