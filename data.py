@@ -3,6 +3,7 @@
 
 import pandas as pd
 from flask_login import LoginManager, UserMixin
+from datetime import datetime
 
 
 # TODO: Implement unique key classification/establish relationships, post_id/author with User
@@ -17,6 +18,15 @@ from flask_login import LoginManager, UserMixin
 # TODO: Check if UserMixin is necessary with properties explicitly defined
 
 
+# no foreign key function in pandas
+# not calling yet, returns an error
+# in the merged table, when a user is added without a post, NaN is entered for the post column values
+def mergeData():
+    User.load_users()
+    user_post_df = pd.merge(Post.posts, User.users, on="username", how="left")
+    user_post_df.to_csv("test.csv", index=False)
+
+
 class User(UserMixin):
     def __init__(self, email, username, password, image_file, likes, posts):
         self.id = email
@@ -25,7 +35,6 @@ class User(UserMixin):
         self.password = password
         self.image_file = image_file
         self.likes = likes
-        self.posts = posts
 
     users = pd.DataFrame()
 
@@ -33,7 +42,7 @@ class User(UserMixin):
     @classmethod
     def load_users(cls):
         # added indices causing issues
-        cls.users = pd.read_csv("data.csv")
+        cls.users = pd.read_csv("test.csv")
 
     @classmethod
     def createUser(cls, email, username, password, image_file="static\default.png"):
@@ -41,11 +50,11 @@ class User(UserMixin):
         # trying to invoke flask_login for this user
         new_user = User(email, username, password, "", [], [])
         new_user = pd.DataFrame(
-            [[email, username, password, image_file, [], []]],
+            [[email, username, password, image_file, []]],
             columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
-        cls.users.to_csv("data.csv", index=False)
+        cls.users.to_csv("test.csv", index=False)
         print("Registered users: ", cls.users)
 
     @classmethod
@@ -69,7 +78,7 @@ class User(UserMixin):
                 curr_user.likes,
                 curr_user.posts,
             ]
-            cls.users.to_csv("data.csv", index=False)
+            cls.users.to_csv("test.csv", index=False)
         else:
             print("Unable to update unknown user")
 
@@ -102,6 +111,37 @@ class User(UserMixin):
     - Inner class?
     - Another cloumn? """
 
+
+class Post:
+    # username = user_id bc it should be shown on posts
+    columns = ["title", "content", "username", "post_id", "date_posted"]
+    posts = pd.DataFrame(columns=columns)
+    # TODO: change to make it dependent on index of post in DataFrame
+    post_id = 0
+
+    # for invoking and creating merged table
+    def __init__(self, title, content, username, post_id, date_posted):
+        self.title = title
+        self.content = content
+        self.username = username
+        self.post_id = post_id
+        self.date_posted = datetime.utcnow
+
+    @classmethod
+    def createPost(cls, title, content, username, date_posted=datetime.utcnow):
+        new_post = pd.DataFrame(
+            [[title, content, username, cls.post_id, date_posted]],
+            columns=cls.posts.columns,
+        )
+
+        cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
+        cls.posts.to_csv("test.csv", index=False)
+
+        cls.post_id += 1
+        print("Current posts: ", cls.posts)
+
+
+# https://stackoverflow.com/questions/30829748/multiple-pandas-dataframe-to-one-csv-file : multiple dataFrames vertically
 
 """ TODO: Add balance maintenance
       # Every user starts with the same balance?
