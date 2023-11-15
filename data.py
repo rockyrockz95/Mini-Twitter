@@ -23,7 +23,7 @@ from datetime import datetime
 # in the merged table, when a user is added without a post, NaN is entered for the post column values
 def mergeData():
     User.load_users()
-    user_post_df = pd.merge(Post.posts, User.users, on="username", how="left")
+    user_post_df = pd.merge(User.Post.posts, User.users, on="username", how="left")
     user_post_df.to_csv("test.csv", index=False)
 
 
@@ -35,6 +35,7 @@ class User(UserMixin):
         self.password = password
         self.image_file = image_file
         self.likes = likes
+        self.posts = posts
 
     users = pd.DataFrame()
 
@@ -45,12 +46,14 @@ class User(UserMixin):
         cls.users = pd.read_csv("test.csv")
 
     @classmethod
-    def createUser(cls, email, username, password, image_file="static\default.png"):
+    def createUser(
+        cls, email, username, password, image_file="static\profile_pics\default.png"
+    ):
         cls.load_users()
         # trying to invoke flask_login for this user
         new_user = User(email, username, password, "", [], [])
         new_user = pd.DataFrame(
-            [[email, username, password, image_file, []]],
+            [[email, username, password, image_file, [], []]],
             columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
@@ -106,39 +109,40 @@ class User(UserMixin):
     def is_authenticated(self):
         return True
 
+    # Approach 2: Push Post DataFrame into the last column of
+
+    class Post:
+        # username = user_id bc it should be shown on posts
+        columns = ["title", "content", "post_id", "date_posted"]
+        posts = pd.DataFrame(columns=columns)
+        # TODO: change to make it dependent on index of post in DataFrame
+        post_id = 0
+
+        # for invoking and creating merged table
+        def __init__(self, title, content, post_id):
+            self.title = title
+            self.content = content
+            self.post_id = post_id
+            self.date_posted = datetime.utcnow
+
+        @classmethod
+        def createPost(cls, title, content, date_posted=datetime.utcnow):
+            new_post = pd.DataFrame(
+                [[title, content, cls.post_id, date_posted]],
+                columns=cls.posts.columns,
+            )
+
+            cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
+            cls.posts.to_csv("test.csv", index=False)
+
+            # randomize?
+            cls.post_id += 1
+            print("Current posts: ", cls.posts)
+
 
 """ TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
     - Inner class?
     - Another cloumn? """
-
-
-class Post:
-    # username = user_id bc it should be shown on posts
-    columns = ["title", "content", "username", "post_id", "date_posted"]
-    posts = pd.DataFrame(columns=columns)
-    # TODO: change to make it dependent on index of post in DataFrame
-    post_id = 0
-
-    # for invoking and creating merged table
-    def __init__(self, title, content, username, post_id, date_posted):
-        self.title = title
-        self.content = content
-        self.username = username
-        self.post_id = post_id
-        self.date_posted = datetime.utcnow
-
-    @classmethod
-    def createPost(cls, title, content, username, date_posted=datetime.utcnow):
-        new_post = pd.DataFrame(
-            [[title, content, username, cls.post_id, date_posted]],
-            columns=cls.posts.columns,
-        )
-
-        cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
-        cls.posts.to_csv("test.csv", index=False)
-
-        cls.post_id += 1
-        print("Current posts: ", cls.posts)
 
 
 # https://stackoverflow.com/questions/30829748/multiple-pandas-dataframe-to-one-csv-file : multiple dataFrames vertically

@@ -1,5 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import FileField, StringField, PasswordField, SubmitField, BooleanField
+from wtforms import (
+    FileField,
+    StringField,
+    PasswordField,
+    SubmitField,
+    BooleanField,
+    TextAreaField,
+)
 from flask_wtf.file import FileAllowed
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from data import User
@@ -36,6 +43,15 @@ class EditAccountForm(FlaskForm):
     )
     submit = SubmitField("Edit Account")
     # TODO: Insert checks for username/email already used
+
+
+class UserPostForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired()])
+    # multi-line input
+    content = TextAreaField(
+        "Content", validators=[DataRequired(), Length(min=12, max=280)]
+    )
+    submit = SubmitField("Post")
 
 
 """ both forms not not fully implemented yet in reset_request.html

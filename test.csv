@@ -1,1 +1,3 @@
-title_x,content_x,post_id_x,date_posted_x,title_y,content_y,username,post_id_y,date_posted_y
+email,username,password,image_file,likes,posts
+admin@log.com,admin,password,static\profile_pics\cat.png,[],[]
+test@test.com,tester,password,static\profile_pics\default.png,[],[]

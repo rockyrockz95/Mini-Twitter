@@ -7,7 +7,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from forms import RegistrationForm, LoginForm, EditAccountForm
+from forms import RegistrationForm, LoginForm, EditAccountForm, UserPostForm
 from data import User
 
 app = Flask(__name__)
@@ -128,7 +128,7 @@ def reset_request():
 # add pitcure file to sys
 # needed for editing the user profile picture
 def picture_path(image_file):
-    img_path = os.path.join("static/profile_pics", image_file.filename)
+    img_path = os.path.join("static\profile_pics", image_file.filename)
     image_file.save(img_path)
 
     return img_path
@@ -157,6 +157,7 @@ def account():
     elif request.method == "GET":
         form.username.data = current_user.username
         form.email.data = current_user.email
+        form.picture.data = current_user.image_file
     else:
         # remember CSRF token for each form
         print(form.errors)
@@ -166,6 +167,21 @@ def account():
     return render_template(
         "account.html", title="Account", image_file=image_file, form=form
     )
+
+
+@app.route("/new_post", methods=["GET", "POST"])
+@login_required
+def new_post():
+    form = UserPostForm()
+    if form.validate_on_submit():
+        User.Post.createPost(
+            title=form.title.data,
+            content=form.content.data,
+            username=current_user.username,
+        )
+        flash("Post created!", "success")
+        return redirect(url_for("home"))
+    return render_template("new_post.html", title="New Post", legend="New Post")
 
 
 if __name__ == "__main__":
