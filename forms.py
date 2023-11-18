@@ -48,9 +48,7 @@ class EditAccountForm(FlaskForm):
 class UserPostForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     # multi-line input
-    content = TextAreaField(
-        "Content", validators=[DataRequired(), Length(min=12, max=280)]
-    )
+    content = TextAreaField("Content", validators=[DataRequired(), Length(max=280)])
     submit = SubmitField("Post")
 
 

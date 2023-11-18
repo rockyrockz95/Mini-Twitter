@@ -18,15 +18,6 @@ from datetime import datetime
 # TODO: Check if UserMixin is necessary with properties explicitly defined
 
 
-# no foreign key function in pandas
-# not calling yet, returns an error
-# in the merged table, when a user is added without a post, NaN is entered for the post column values
-def mergeData():
-    User.load_users()
-    user_post_df = pd.merge(User.Post.posts, User.users, on="username", how="left")
-    user_post_df.to_csv("test.csv", index=False)
-
-
 class User(UserMixin):
     def __init__(self, email, username, password, image_file, likes, posts):
         self.id = email
@@ -43,7 +34,7 @@ class User(UserMixin):
     @classmethod
     def load_users(cls):
         # added indices causing issues
-        cls.users = pd.read_csv("test.csv")
+        cls.users = pd.read_csv("data.csv")
 
     @classmethod
     def createUser(
@@ -81,7 +72,7 @@ class User(UserMixin):
                 curr_user.likes,
                 curr_user.posts,
             ]
-            cls.users.to_csv("test.csv", index=False)
+            cls.users.to_csv("data.csv", index=False)
         else:
             print("Unable to update unknown user")
 
@@ -109,36 +100,46 @@ class User(UserMixin):
     def is_authenticated(self):
         return True
 
-    # Approach 2: Push Post DataFrame into the last column of
+    # Approach 3: save posts in different DataFrame, associate posts with users
+    #    via post_id
 
     class Post:
-        # username = user_id bc it should be shown on posts
-        columns = ["title", "content", "post_id", "date_posted"]
+        columns = ["title", "content", "username", "post_id", "date_posted"]
         posts = pd.DataFrame(columns=columns)
         # TODO: change to make it dependent on index of post in DataFrame
         post_id = 0
 
         # for invoking and creating merged table
-        def __init__(self, title, content, post_id):
+        # author username
+        def __init__(self, title, content, post_id, username):
             self.title = title
             self.content = content
+            self.username = username
             self.post_id = post_id
-            self.date_posted = datetime.utcnow
+            self.date_posted = datetime.utcnow()
 
         @classmethod
-        def createPost(cls, title, content, date_posted=datetime.utcnow):
+        def load_posts(cls):
+            cls.posts = pd.read_csv("test.csv")
+
+        @classmethod
+        def createPost(cls, title, content, username, date_posted=datetime.utcnow()):
+            cls.load_posts()
             new_post = pd.DataFrame(
-                [[title, content, cls.post_id, date_posted]],
+                [[title, content, username, cls.post_id, date_posted]],
                 columns=cls.posts.columns,
             )
 
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
-            cls.posts.to_csv("test.csv", index=False)
+            cls.posts.to_csv("test.csv", header="posts", index=False)
 
             # randomize?
             cls.post_id += 1
             print("Current posts: ", cls.posts)
 
+
+User.Post.load_posts()
+print(User.Post.posts.items())
 
 """ TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
     - Inner class?
@@ -151,11 +152,6 @@ class User(UserMixin):
       # Every user starts with the same balance?
       # How do users add more? 
           - Account settings?"""
-
-""" Skeleton of post structure
-posts = pd.DataFrame(columns=['author','date', 'content', 'likes'])
-    # Give posts an id? --> Easier to hold in User csv
-"""
 
 """ Sources: 
 #   https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html

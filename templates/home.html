@@ -1,11 +1,26 @@
 {%extends "layout.html"%}
 {% block content %}
-<article class="media content-section">
-    <div class="media-body">
-        <!-- Use article-metadata tag for actual posts-->
-        <h1>User Posts</h1>
-        <p>Users should be shown posts from accounts they follow</p>
-        <p>In the case of Surfers, just posts from TUs</p>
-    </div>
-</article>
+{% for post in posts.itertuples() %}
+  <article class="media content-section">
+      <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == post.username, 'image_file'].values[0]}}" alt="user profile picture">
+      <div class="media-body">
+        <div class="article-metadata">
+            <!--Print out entire username only-->
+            <a class="mr-2" href="#">{{ post.username }}</a>
+            <!-- Its a datetime method, so we can use str methods-->
+            <!-- want to only display the date-->
+            <!-- search up codes for datetime stuff-->
+            <small class="text-muted">{{ post.date_posted }}</small>
+        </div>
+        <!-- added link to actual post in href-->
+        <h2><a class="article-title" href="{{url_for('single_post', post_id=posts.post_id)}}">{{ post.title }}</a></h2>
+        <p class="article-content">{{ post.content }}</p>
+      </div>
+  </article>
+{% endfor %}
 {% endblock content %}
+
+<!-- boolean indexing: for finding the image_file matched with the post's users
+        https://www.geeksforgeeks.org/boolean-indexing-in-pandas/-->
+<!-- intertuples() : returns iterator, needed to show all posts
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.itertuples.html -->

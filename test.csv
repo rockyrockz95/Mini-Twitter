@@ -1,3 +1,4 @@
-email,username,password,image_file,likes,posts
-admin@log.com,admin,password,static\profile_pics\cat.png,[],[]
-test@test.com,tester,password,static\profile_pics\default.png,[],[]
+title,content,username,post_id,date_posted
+First Post,This is terrible,admin,0,2023-11-16 00:22:34.051646
+Multiple Users,Checking if posts from multiple users show up,user,0,2023-11-18 01:38:13.932400
+New to Chip,Hi!,test001,0,2023-11-18 03:26:09.812155

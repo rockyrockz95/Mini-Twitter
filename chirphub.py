@@ -59,7 +59,10 @@ def user_loader(user_id):
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template("home.html")
+    # need access to both to show the user and post attributes
+    users = User.users
+    posts = User.Post.posts
+    return render_template("home.html", posts=posts, users=users)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -181,7 +184,30 @@ def new_post():
         )
         flash("Post created!", "success")
         return redirect(url_for("home"))
-    return render_template("new_post.html", title="New Post", legend="New Post")
+    return render_template(
+        "new_post.html", title="New Post", legend="New Post", form=form
+    )
+
+
+# single post chosen/displaying individual posts in home
+# attempting to pass in variable to route
+@app.route("/post/<post_id>")
+def single_post(post_id):
+    users = User.users
+    posts = User.Post.posts
+    return render_template("single_post.html", posts=posts, users=users)
+
+
+@app.route("/update_post/<post_id>")
+def update_post(post_id):
+    print("Reached update post route")
+    return redirect(url_for("home"))
+
+
+@app.route("/delete_post/<post_id>")
+def delete_post(post_id):
+    print("Reached delete post route")
+    return redirect(url_for("home"))
 
 
 if __name__ == "__main__":
