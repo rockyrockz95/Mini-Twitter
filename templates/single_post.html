@@ -3,7 +3,7 @@
 {% extends "layout.html" %}
 {% block content %}
   <article class="media content-section">
-    <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == post.iloc[].username, 'image_file'].values[0] }}">
+    <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
     <div class="media-body">
       <div class="article-metadata">
         <a class="mr-2" href="#">{{ posts.iloc[0].username }}</a>
