@@ -198,13 +198,13 @@ def single_post(post_id):
     return render_template("single_post.html", posts=posts, users=users)
 
 
-@app.route("/update_post/<post_id>")
+@app.route("/update_post/<post_id>", methods=["GET", "POST"])
 def update_post(post_id):
     print("Reached update post route")
     return redirect(url_for("home"))
 
 
-@app.route("/delete_post/<post_id>")
+@app.route("/delete_post/<post_id>", methods=["POST"])
 def delete_post(post_id):
     print("Reached delete post route")
     return redirect(url_for("home"))

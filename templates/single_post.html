@@ -1,28 +1,20 @@
 <!-- paste Schafer source -->
+<!-- Extend part from home || other way around-->
 <!-- for displaying a single post-->
 {% extends "layout.html" %}
 {% block content %}
   <article class="media content-section">
-    <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == post.iloc[].username, 'image_file'].values[0] }}">
+    <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == posts.iloc[0].username, 'image_file'].values[0] }}">
     <div class="media-body">
       <div class="article-metadata">
         <a class="mr-2" href="#">{{ posts.iloc[0].username }}</a>
-        <small class="text-muted">{{ posts.date_posted }}</small>
-     
-     <!--   {% if posts.username == current_user %} 
-          <-- Only author can see the options to delete/update a post
-          <div>
-            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('update_post', post_id=post.id) }}">Update</a>
-            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete</button>
-          </div>
-        {% endif %}
+        <small class="text-muted">{{ posts.iloc[0].date_posted }}</small>
       </div>
-      <h2 class="article-title">{{ posts.title }}</h2>
-      <p class="article-content">{{ posts.content }}</p>
-    </div>
-  </article> -->
+        <h2 class="article-title">{{ posts.iloc[0].title }}</h2>
+        <p class="article-content">{{ posts.iloc[0].content }}</p>
+      </div>
+  </article>
   <!-- Modal: TAKEN DIRECTLY FROM BOOTSTRAP (LIVE DEMO): pop-up window to make sure user wants to delete -->
-  <!----
   <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -32,13 +24,14 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
+    
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+          <form action="{{ url_for('delete_post', post_id=posts.post_id) }}" method="POST">
             <input class="btn btn-danger" type="submit" value="Delete">
           </form>
         </div>
       </div>
     </div>
-  </div> -->
+  </div>
 {% endblock content %}

@@ -48,7 +48,7 @@ class User(UserMixin):
             columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
-        cls.users.to_csv("test.csv", index=False)
+        cls.users.to_csv("data.csv", index=False)
         print("Registered users: ", cls.users)
 
     @classmethod
@@ -120,7 +120,7 @@ class User(UserMixin):
 
         @classmethod
         def load_posts(cls):
-            cls.posts = pd.read_csv("test.csv")
+            cls.posts = pd.read_csv("posts.csv")
 
         @classmethod
         def createPost(cls, title, content, username, date_posted=datetime.utcnow()):
@@ -131,7 +131,7 @@ class User(UserMixin):
             )
 
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
-            cls.posts.to_csv("test.csv", header="posts", index=False)
+            cls.posts.to_csv("posts.csv", header="posts", index=False)
 
             # randomize?
             cls.post_id += 1
