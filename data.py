@@ -38,7 +38,7 @@ class User(UserMixin):
 
     @classmethod
     def createUser(
-        cls, email, username, password, image_file="static\profile_pics\default.png"
+        cls, email, username, password, image_file="profile_pics/default.png"
     ):
         cls.load_users()
         # trying to invoke flask_login for this user
@@ -106,7 +106,7 @@ class User(UserMixin):
     class Post:
         columns = ["title", "content", "username", "post_id", "date_posted"]
         posts = pd.DataFrame(columns=columns)
-        # TODO: change to make it dependent on index of post in DataFrame
+        # set index to post_id
         post_id = 0
 
         # for invoking and creating merged table
@@ -130,16 +130,17 @@ class User(UserMixin):
                 columns=cls.posts.columns,
             )
 
+            cls.post_id += 1
+
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
             cls.posts.to_csv("posts.csv", header="posts", index=False)
 
-            # randomize?
-            cls.post_id += 1
             print("Current posts: ", cls.posts)
 
 
 User.Post.load_posts()
-print(User.Post.posts.items())
+for index, post in User.Post.posts.iterrows():
+    print(post.post_id)
 
 """ TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
     - Inner class?
@@ -156,5 +157,6 @@ print(User.Post.posts.items())
 """ Sources: 
 #   https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
 #   https://pandas.pydata.org/docs/user_guide/io.html
-# https://realpython.com/using-flask-login-for-user-management-with-flask/
+#   https://realpython.com/using-flask-login-for-user-management-with-flask/
+#   Column as Index Example: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html#pandas.DataFrame.reset_index
 """

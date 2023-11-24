@@ -2,7 +2,8 @@
 {% block content %}
 {% for post in posts.itertuples() %}
   <article class="media content-section">
-      <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == post.username, 'image_file'].values[0]}}" alt="user profile picture">
+    <!-- Booleans indexing to find the image_file of the matching user, post username -->
+      <img class="rounded-circle article-img" src="{{ url_for('static', filename=users.loc[users['username'] == post.username, 'image_file'].values[0])}}" alt="user profile picture">
       <div class="media-body">
         <div class="article-metadata">
             <!--Print out entire username only-->
@@ -13,7 +14,7 @@
             <small class="text-muted">{{ post.date_posted }}</small>
         </div>
         <!-- added link to actual post in href-->
-        <h2><a class="article-title" href="{{url_for('single_post', post_id=posts.post_id)}}">{{ post.title }}</a></h2>
+        <h2><a class="article-title" href="{{url_for('single_post', post_id=post.post_id)}}">{{ post.title }}</a></h2>
         <p class="article-content">{{ post.content }}</p>
       </div>
   </article>

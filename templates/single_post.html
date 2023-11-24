@@ -4,14 +4,16 @@
 {% extends "layout.html" %}
 {% block content %}
   <article class="media content-section">
-    <img class="rounded-circle article-img" src="{{ users.loc[users['username'] == posts.iloc[0].username, 'image_file'].values[0] }}">
+    <img class="rounded-circle article-img" src="{{ url_for('static', filename=user.image_file) }}">
     <div class="media-body">
       <div class="article-metadata">
-        <a class="mr-2" href="#">{{ posts.iloc[0].username }}</a>
-        <small class="text-muted">{{ posts.iloc[0].date_posted }}</small>
+        <!--post-id == index -->
+
+        <a class="mr-2" href="#">{{ post.username}}</a>
+        <small class="text-muted">{{ post.date_posted }}</small>
       </div>
-        <h2 class="article-title">{{ posts.iloc[0].title }}</h2>
-        <p class="article-content">{{ posts.iloc[0].content }}</p>
+        <h2 class="article-title">{{ post.title }}</h2>
+        <p class="article-content">{{ post.content }}</p>
       </div>
   </article>
   <!-- Modal: TAKEN DIRECTLY FROM BOOTSTRAP (LIVE DEMO): pop-up window to make sure user wants to delete -->
@@ -27,7 +29,7 @@
     
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <form action="{{ url_for('delete_post', post_id=posts.post_id) }}" method="POST">
+          <form action="{{ url_for('delete_post', post_id=post.post_id) }}" method="POST">
             <input class="btn btn-danger" type="submit" value="Delete">
           </form>
         </div>

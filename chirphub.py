@@ -20,6 +20,8 @@ User.load_users()
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+User.Post.load_posts()
+
 
 # flask_login requires a user loader
 @login_manager.user_loader
@@ -115,7 +117,6 @@ def login():
     return render_template("login.html", title="Login", form=form)
 
 
-# should replace login route on bottom navbar when user logged in
 @app.route("/logout")
 def logout():
     logout_user()
@@ -131,13 +132,12 @@ def reset_request():
 # add pitcure file to sys
 # needed for editing the user profile picture
 def picture_path(image_file):
-    img_path = os.path.join("static\profile_pics", image_file.filename)
+    img_path = os.path.join("static/profile_pics", image_file.filename)
     image_file.save(img_path)
 
     return img_path
 
 
-# TODO: default photo does not show unless explicitly chosen
 @app.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
@@ -190,12 +190,17 @@ def new_post():
 
 
 # single post chosen/displaying individual posts in home
-# attempting to pass in variable to route
 @app.route("/post/<post_id>")
 def single_post(post_id):
     users = User.users
     posts = User.Post.posts
-    return render_template("single_post.html", posts=posts, users=users)
+    # pandas indexing error without int casting
+    post_id = int(post_id)
+    # find the post with the same post_id
+    post = posts[posts["post_id"] == post_id].iloc[0]
+    user = users[users["username"] == post.username].iloc[0]
+
+    return render_template("single_post.html", posts=posts, user=user, post=post)
 
 
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
