@@ -265,3 +265,5 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 # TODO: Add sources for image file and os functions
+""" Sources:
+      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p"""

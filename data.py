@@ -4,19 +4,15 @@
 import pandas as pd
 from flask_login import LoginManager, UserMixin
 from datetime import datetime
-from random import randint
-
-
-# TODO: Implement unique key classification/establish relationships, post_id/author with User
+from random import seed, randint
+import time
 
 
 """ UserMixin - manages session user for us
        # is_authenticated()
        # is_active()
        # is_anonymous
-       # get_id()
-"""
-# TODO: Check if UserMixin is necessary with properties explicitly defined
+       # get_id() """
 
 
 class User(UserMixin):
@@ -101,23 +97,30 @@ class User(UserMixin):
     def is_authenticated(self):
         return True
 
-    # Approach 3: save posts in different DataFrame, associate posts with users
-    #    via post_id
-
     class Post:
-        columns = ["title", "content", "username", "post_id", "date_posted"]
+        columns = [
+            "title",
+            "content",
+            "username",
+            "post_id",
+            "date_posted",
+            "key_words",
+        ]
         posts = pd.DataFrame(columns=columns)
         # don't want any post to have the same id
-        post_id = 0
+        # TODO: Look into os.urandom
+        seed(time.process_time_ns())
+        post_id = randint(0, 1000)
 
         # check the syntax of this
-        def __init__(self, title, content, username, post_id=None):
+        def __init__(self, title, content, username, key_words=None, post_id=None):
             self.title = title
             self.content = content
             self.username = username
+            self.key_words = key_words
             self.date_posted = datetime.utcnow()
             # keeps post_id from changing between updates
-            if self.post_id == None:
+            if post_id is None:
                 self.post_id = randint(0, 1000)
             else:
                 self.post_id = post_id
@@ -127,7 +130,13 @@ class User(UserMixin):
             cls.posts = pd.read_csv("posts.csv")
 
         @classmethod
-        def createPost(cls, title, content, username, date_posted=datetime.utcnow()):
+        def createPost(
+            cls,
+            title,
+            content,
+            username,
+            date_posted=datetime.utcnow(),
+        ):
             cls.load_posts()
             new_post = pd.DataFrame(
                 [
