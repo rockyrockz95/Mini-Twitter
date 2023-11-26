@@ -1,8 +1,9 @@
-title,content,username,post_id,date_posted
-First Post,We can add posts now,user,0,11-23-2023
-Thank You,I'd like to thank everyone who worked on this project,admin,1,11-23-2023
-Happy Thanksgiving,Have a safe and happy turkey day,rockyrockz95,2,11-23-2023
-Final Big Post Update,Posts now display user images and individual posts can be viewed,test001,3,11-24-2023
-Bootstrap,Graphic Design is my passion,rockyrockz95,5,11-24-2023
-Crying in the Club,:(,user,95,11-26-2023
-Sobbing in the Club,:'(,user,95,11-26-2023
+title,content,username,keywords,date_posted,post_id
+First Post,We can add posts now,user,,11/23/2023,0
+Thank You,I'd like to thank everyone who worked on this project,admin,,11/23/2023,1
+Final Big Post Update,Posts now display user images and individual posts can be viewed,test001,,11/24/2023,3
+Bootstrap,Graphic Design is my passion,rockyrockz95,artistic,11/24/2023,5
+Sobbing in the Club,:'(,user,,11/26/2023,96
+New Post,post,rockyrockz95,,11/26/2023,42
+LEON?!?,11037,user,,11/26/2023,213
+Added Key Words,Each post should have up to 3,rockyrockz95,NewFeature,11/26/2023,240

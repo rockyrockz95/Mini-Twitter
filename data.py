@@ -4,8 +4,7 @@
 import pandas as pd
 from flask_login import LoginManager, UserMixin
 from datetime import datetime
-from random import seed, randint
-import time
+from os import urandom
 
 
 """ UserMixin - manages session user for us
@@ -102,26 +101,25 @@ class User(UserMixin):
             "title",
             "content",
             "username",
-            "post_id",
+            "keywords",
             "date_posted",
-            "key_words",
+            "post_id",
         ]
         posts = pd.DataFrame(columns=columns)
         # don't want any post to have the same id
         # TODO: Look into os.urandom
-        seed(time.process_time_ns())
-        post_id = randint(0, 1000)
+        post_id = int.from_bytes(urandom(1), "little")
 
         # check the syntax of this
-        def __init__(self, title, content, username, key_words=None, post_id=None):
+        def __init__(self, title, content, username, keywords="", post_id=None):
             self.title = title
             self.content = content
             self.username = username
-            self.key_words = key_words
+            self.keywords = keywords
             self.date_posted = datetime.utcnow()
             # keeps post_id from changing between updates
             if post_id is None:
-                self.post_id = randint(0, 1000)
+                self.post_id = int.from_bytes(urandom(1), "little")
             else:
                 self.post_id = post_id
 
@@ -135,6 +133,7 @@ class User(UserMixin):
             title,
             content,
             username,
+            keywords,
             date_posted=datetime.utcnow(),
         ):
             cls.load_posts()
@@ -144,6 +143,7 @@ class User(UserMixin):
                         title,
                         content,
                         username,
+                        keywords,
                         cls.post_id,
                         date_posted.strftime("%m-%d-%Y"),
                     ]
@@ -166,9 +166,10 @@ class User(UserMixin):
             # TODO: ALL lines above this can be made into a seperate func, called again in next method
 
             if post_index is not None:
-                cls.posts.loc[post_index, ["title", "content"]] = [
+                cls.posts.loc[post_index, ["title", "content", "keywords"]] = [
                     post.title,
                     post.content,
+                    post.keywords,
                 ]
                 cls.posts.to_csv("posts.csv", index=False)
             else:

@@ -182,6 +182,7 @@ def new_post():
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
+            keywords=form.keywords.data,
         )
         flash("Post created!", "success")
         return redirect(url_for("home"))
@@ -196,7 +197,8 @@ def single_post(post_id):
     users = User.users
     posts = User.Post.posts
     # pandas indexing error without int casting
-    post_id = int(post_id)
+    # urandom format requires float --> int
+    post_id = int(float(post_id))
     # find the post with the same post_id
     post = posts[posts["post_id"] == post_id].iloc[0]
     user = users[users["username"] == post.username].iloc[0]
@@ -212,7 +214,7 @@ def update_post(post_id):
     posts = User.Post.posts
     # pandas indexing error without int casting
     # find the post with the same post_id
-    post_id = int(post_id)
+    post_id = int(float(post_id))
     post = posts[posts["post_id"] == post_id].iloc[0]  # shows the correct post
     user = users[users["username"] == post.username].iloc[0]
 
@@ -224,11 +226,13 @@ def update_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        post.keywords = form.keywords.data
 
         updted_post = User.Post(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
+            keywords=form.keywords.data,
             post_id=post.post_id,
         )
         User.Post.updatePost(updted_post)
@@ -248,7 +252,7 @@ def update_post(post_id):
 def delete_post(post_id):
     posts = User.Post.posts
     # pandas indexing error without int casting
-    post_id = int(post_id)
+    post_id = int(float(post_id))
     # TODO: Make the whole file more concise
     post = posts[posts["post_id"] == post_id].iloc[0]
     # Only user who made the post can delete it
@@ -266,4 +270,5 @@ if __name__ == "__main__":
 
 # TODO: Add sources for image file and os functions
 """ Sources:
-      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p"""
+      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p
+      - ValueError - os.urandom handling: https://stackoverflow.com/questions/1841565/valueerror-invalid-literal-for-int-with-base-10"""
