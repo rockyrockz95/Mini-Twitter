@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, flash, url_for, redirect, request
+from flask import Flask, render_template, flash, url_for, redirect, request, abort
 from flask_login import (
     LoginManager,
     current_user,
@@ -9,6 +9,7 @@ from flask_login import (
 )
 from forms import RegistrationForm, LoginForm, EditAccountForm, UserPostForm
 from data import User
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -204,13 +205,58 @@ def single_post(post_id):
 
 
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
+@login_required
 def update_post(post_id):
-    print("Reached update post route")
-    return redirect(url_for("home"))
+    # TODO: Consider function for user, post pairs
+    users = User.users
+    posts = User.Post.posts
+    # pandas indexing error without int casting
+    # find the post with the same post_id
+    post_id = int(post_id)
+    post = posts[posts["post_id"] == post_id].iloc[0]  # shows the correct post
+    user = users[users["username"] == post.username].iloc[0]
+
+    # Only user who made the post can update it
+    if post.username != current_user.username:
+        abort(403)
+
+    form = UserPostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+
+        updted_post = User.Post(
+            title=form.title.data,
+            content=form.content.data,
+            username=current_user.username,
+            post_id=post.post_id,
+        )
+        User.Post.updatePost(updted_post)
+        flash("Post updated")
+        return redirect(url_for("single_post", post_id=post.post_id))
+    #  only populate if existing data is in form
+    elif request.method == "GET":
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template(
+        "new_post.html", title="Update Post", form=form, legend="Update Post"
+    )
 
 
 @app.route("/delete_post/<post_id>", methods=["POST"])
+@login_required
 def delete_post(post_id):
+    posts = User.Post.posts
+    # pandas indexing error without int casting
+    post_id = int(post_id)
+    # TODO: Make the whole file more concise
+    post = posts[posts["post_id"] == post_id].iloc[0]
+    # Only user who made the post can delete it
+    if post.username != current_user.username:
+        abort(403)
+
+    User.Post.deletePost(post)
+    flash("Post Deleted!", "success")
     print("Reached delete post route")
     return redirect(url_for("home"))
 

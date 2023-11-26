@@ -1,5 +1,5 @@
 body {
-    background: #fafafa;
+    background: #002147;
     color: #333333;
     margin-top: 5rem;
 }
@@ -13,26 +13,14 @@ h6 {
     color: #444444;
 }
 
-.bg-steel {
-    background-color: #5f788a;
-}
-
-.site-header .navbar-nav .nav-link {
-    color: #cbd5db;
-}
-
-.site-header .navbar-nav .nav-link:hover {
-    color: #ffffff;
-}
-
-.site-header .navbar-nav .nav-link.active {
-    font-weight: 500;
+a {
+    text-decoration: none;
 }
 
 .content-section {
-    background: #ffffff;
+    background: #a9a9a9;
     padding: 10px 20px;
-    border: 1px solid #dddddd;
+    border: 1px solid #000000;
     border-radius: 3px;
     margin-bottom: 20px;
 }
@@ -60,6 +48,10 @@ a.article-title:hover {
     padding-bottom: 1px;
     margin-bottom: 4px;
     border-bottom: 1px solid #e3e3e3
+}
+
+.article-metadata a {
+    color: #e3e3e3;
 }
 
 .article-metadata a:hover {

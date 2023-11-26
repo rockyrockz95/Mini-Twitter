@@ -4,6 +4,7 @@
 import pandas as pd
 from flask_login import LoginManager, UserMixin
 from datetime import datetime
+from random import randint
 
 
 # TODO: Implement unique key classification/establish relationships, post_id/author with User
@@ -106,17 +107,20 @@ class User(UserMixin):
     class Post:
         columns = ["title", "content", "username", "post_id", "date_posted"]
         posts = pd.DataFrame(columns=columns)
-        # set index to post_id
+        # don't want any post to have the same id
         post_id = 0
 
-        # for invoking and creating merged table
-        # author username
-        def __init__(self, title, content, post_id, username):
+        # check the syntax of this
+        def __init__(self, title, content, username, post_id=None):
             self.title = title
             self.content = content
             self.username = username
-            self.post_id = post_id
             self.date_posted = datetime.utcnow()
+            # keeps post_id from changing between updates
+            if self.post_id == None:
+                self.post_id = randint(0, 1000)
+            else:
+                self.post_id = post_id
 
         @classmethod
         def load_posts(cls):
@@ -126,21 +130,58 @@ class User(UserMixin):
         def createPost(cls, title, content, username, date_posted=datetime.utcnow()):
             cls.load_posts()
             new_post = pd.DataFrame(
-                [[title, content, username, cls.post_id, date_posted]],
+                [
+                    [
+                        title,
+                        content,
+                        username,
+                        cls.post_id,
+                        date_posted.strftime("%m-%d-%Y"),
+                    ]
+                ],
                 columns=cls.posts.columns,
             )
-
-            cls.post_id += 1
 
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
             cls.posts.to_csv("posts.csv", header="posts", index=False)
 
             print("Current posts: ", cls.posts)
 
+        @classmethod
+        def updatePost(cls, post):
+            cls.load_posts()
 
-User.Post.load_posts()
-for index, post in User.Post.posts.iterrows():
-    print(post.post_id)
+            # find the index of the post with an existing post_id
+            if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
+                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
+            # TODO: ALL lines above this can be made into a seperate func, called again in next method
+
+            if post_index is not None:
+                cls.posts.loc[post_index, ["title", "content"]] = [
+                    post.title,
+                    post.content,
+                ]
+                cls.posts.to_csv("posts.csv", index=False)
+            else:
+                print("Post does not exist")
+
+        @classmethod
+        def deletePost(cls, post):
+            cls.load_posts()
+
+            if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
+                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
+
+            if post_index is not None:
+                cls.posts.drop(index=post_index, inplace=True)
+                cls.posts.to_csv("posts.csv", index=False)
+            else:
+                print("Post does not exist")
+
+
+# User.Post.load_posts()
+# for index, post in User.Post.posts.iterrows():
+#     print(post)
 
 """ TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
     - Inner class?
@@ -159,4 +200,5 @@ for index, post in User.Post.posts.iterrows():
 #   https://pandas.pydata.org/docs/user_guide/io.html
 #   https://realpython.com/using-flask-login-for-user-management-with-flask/
 #   Column as Index Example: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html#pandas.DataFrame.reset_index
+#   Datetime Code Used: https://www.geeksforgeeks.org/python-strftime-function/
 """
