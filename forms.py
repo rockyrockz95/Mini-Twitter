@@ -1,19 +1,11 @@
 import re
 from flask_wtf import FlaskForm
-from wtforms import (
-    FileField,
-    StringField,
-    PasswordField,
-    SubmitField,
-    BooleanField,
-    TextAreaField,
-    ValidationError,
-)
-from flask_wtf.file import FileAllowed
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional
+from flask_wtf.file import FileField, FileAllowed
+from flask_login import current_user
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError
 from collections import Counter
 from data import User
-
 
 # creating each form as a class, possible using wtforms package
 class LoginForm(FlaskForm):
@@ -62,17 +54,19 @@ class UserPostForm(FlaskForm):
         if count > 3:
             raise ValidationError("Only up to 3 keywords allowed")
 
-
-""" both forms not not fully implemented yet in reset_request.html
 class RequestResetForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Request Password Reset')
 
+    def validate_email(self, email):
+        user_data = User.users[User.users["email"] == email.data]
+        if user_data.empty:
+            raise ValidationError('There is no account with that email. You must register first.')
+        
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
-"""
+
 # Sources:
-#   custom validator: https://www.geeksforgeeks.org/python-regex-re-search-vs-re-findall/
 #   validators: https://wtforms.readthedocs.io/en/2.3.x/validators/#:~:text=Validates%20that%20input%20was%20provided%20for%20this%20field.,required%20flag%20on%20fields%20it%20is%20used%20on.

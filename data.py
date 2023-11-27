@@ -1,7 +1,9 @@
 # File to maintain user data
 # User has profile, messages/posts, likes
 
+from flask import app
 import pandas as pd
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask_login import LoginManager, UserMixin
 from datetime import datetime
 from os import urandom
@@ -26,6 +28,39 @@ class User(UserMixin):
 
     users = pd.DataFrame()
 
+    def get_reset_token(self):
+        s = Serializer(app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.id})
+
+    @staticmethod
+    def verify_reset_token(token, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token, max_age=expires_sec)['user_id']
+        except:
+            return None
+
+        # Assuming the user data is stored in the DataFrame users
+        user_data = User.users[User.users["email"] == user_id]
+        if user_data.empty:
+            print("User not found for password reset.")
+            return None
+
+        # Assuming user_id is the email, you can access it like this
+        user_id = user_data.iloc[0]["email"]
+
+        # Returning the user_data or a User instance as needed
+        user = User(
+            email=user_data.iloc[0]["email"],
+            username=user_data.iloc[0]["username"],
+            password=user_data.iloc[0]["password"],
+            image_file=user_data.iloc[0]["image_file"],
+            likes=user_data.iloc[0]["likes"],
+            posts=user_data.iloc[0]["posts"],
+        )
+
+        return user if isinstance(user, User) else None
+           
     # for explicitly loading at startup
     @classmethod
     def load_users(cls):
