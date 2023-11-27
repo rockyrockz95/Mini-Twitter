@@ -144,8 +144,8 @@ class User(UserMixin):
                         content,
                         username,
                         keywords,
-                        cls.post_id,
                         date_posted.strftime("%m-%d-%Y"),
+                        cls.post_id,
                     ]
                 ],
                 columns=cls.posts.columns,
