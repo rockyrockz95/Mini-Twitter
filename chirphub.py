@@ -194,14 +194,11 @@ def new_post():
 # single post chosen/displaying individual posts in home
 @app.route("/post/<post_id>")
 def single_post(post_id):
-    users = User.users
-    posts = User.Post.posts
     # pandas indexing error without int casting
     # urandom format requires float --> int
     post_id = int(float(post_id))
-    # find the post with the same post_id
-    post = posts[posts["post_id"] == post_id].iloc[0]
-    user = users[users["username"] == post.username].iloc[0]
+    posts = User.Post.posts
+    post, user = User.Post.postUserPair(post_id)
 
     return render_template("single_post.html", posts=posts, user=user, post=post)
 
@@ -209,14 +206,8 @@ def single_post(post_id):
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
 @login_required
 def update_post(post_id):
-    # TODO: Consider function for user, post pairs
-    users = User.users
-    posts = User.Post.posts
-    # pandas indexing error without int casting
-    # find the post with the same post_id
     post_id = int(float(post_id))
-    post = posts[posts["post_id"] == post_id].iloc[0]  # shows the correct post
-    user = users[users["username"] == post.username].iloc[0]
+    post = User.Post.postUserPair(post_id)[0]
 
     # Only user who made the post can update it
     if post.username != current_user.username:
@@ -236,12 +227,13 @@ def update_post(post_id):
             post_id=post.post_id,
         )
         User.Post.updatePost(updted_post)
-        flash("Post updated")
+        flash("Post updated", "success")
         return redirect(url_for("single_post", post_id=post.post_id))
     #  only populate if existing data is in form
     elif request.method == "GET":
         form.title.data = post.title
         form.content.data = post.content
+        form.keywords.data = post.keywords
     return render_template(
         "new_post.html", title="Update Post", form=form, legend="Update Post"
     )
@@ -250,11 +242,8 @@ def update_post(post_id):
 @app.route("/delete_post/<post_id>", methods=["POST"])
 @login_required
 def delete_post(post_id):
-    posts = User.Post.posts
-    # pandas indexing error without int casting
     post_id = int(float(post_id))
-    # TODO: Make the whole file more concise
-    post = posts[posts["post_id"] == post_id].iloc[0]
+    post = User.Post.postUserPair(post_id)[0]
     # Only user who made the post can delete it
     if post.username != current_user.username:
         abort(403)

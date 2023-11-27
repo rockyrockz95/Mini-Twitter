@@ -156,7 +156,19 @@ class User(UserMixin):
 
             print("Current posts: ", cls.posts)
 
-       # common function
+        @classmethod
+        def postUserPair(cls, post_id):
+            # pandas indexing error without int casting
+            # find the post with the same post_id
+            User.load_users()
+            users = User.users
+
+            post = cls.posts[cls.posts["post_id"] == post_id].iloc[0]
+            user = users[users["username"] == post.username].iloc[0]
+
+            return post, user
+
+        # common function
         # TODO: check if can be used outside of User
         @classmethod
         def findPost(cls, post):
@@ -167,20 +179,6 @@ class User(UserMixin):
                 post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
 
             return post_index
-
-        @classmethod
-        def postUserPair(cls, post_id):
-            # pandas indexing error without int casting
-            # find the post with the same post_id
-            post_id = int(float(post_id))
-            post = cls.posts[cls.posts["post_id"] == post_id].iloc[
-                0
-            ]  # shows the correct post
-            user = cls.users[cls.users["username"] == post.username].iloc[0]
-
-            print(cls.users)
-            print(post, user)
-            # return post, user
 
         @classmethod
         def updatePost(cls, post):
@@ -200,7 +198,6 @@ class User(UserMixin):
         @classmethod
         def deletePost(cls, post):
             post_index = cls.findPost(post)
-
             if post_index is not None:
                 cls.posts.drop(index=post_index, inplace=True)
                 cls.posts.to_csv("posts.csv", index=False)
@@ -208,7 +205,9 @@ class User(UserMixin):
                 print("Post does not exist")
 
 
-# User.Post.load_posts()
+User.Post.load_posts()
+post = User.Post.posts.iloc[0]
+User.Post.postUserPair(post.post_id)
 # for index, post in User.Post.posts.iterrows():
 #     print(post)
 
