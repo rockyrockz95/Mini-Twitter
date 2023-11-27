@@ -156,14 +156,36 @@ class User(UserMixin):
 
             print("Current posts: ", cls.posts)
 
+        # common function
+        # TODO: check if can be used outside of User
         @classmethod
-        def updatePost(cls, post):
+        def findPost(cls, post):
             cls.load_posts()
 
             # find the index of the post with an existing post_id
             if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
                 post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
-            # TODO: ALL lines above this can be made into a seperate func, called again in next method
+
+            return post_index
+
+        @classmethod
+        def postUserPair(cls, post_id):
+            # pandas indexing error without int casting
+            # find the post with the same post_id
+            post_id = int(float(post_id))
+            post = cls.posts[cls.posts["post_id"] == post_id].iloc[
+                0
+            ]  # shows the correct post
+            user = cls.users[cls.users["username"] == post.username].iloc[0]
+
+            print(cls.users)
+            print(post, user)
+            # return post, user
+
+        @classmethod
+        def updatePost(cls, post):
+            # check
+            post_index = cls.findPost(post)
 
             if post_index is not None:
                 cls.posts.loc[post_index, ["title", "content", "keywords"]] = [
@@ -177,16 +199,22 @@ class User(UserMixin):
 
         @classmethod
         def deletePost(cls, post):
-            cls.load_posts()
-
-            if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
-                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
+            post_index = cls.findPost(post)
 
             if post_index is not None:
                 cls.posts.drop(index=post_index, inplace=True)
                 cls.posts.to_csv("posts.csv", index=False)
             else:
                 print("Post does not exist")
+
+        # When a user likes a post, post_id given to the user's profile
+        #    take post_id --> find post --> add +1 to like counter, push post_id to user likes
+        """
+        @classmethod
+        def likePost(cls, post):
+            cls.load_posts()
+            
+            """
 
 
 # User.Post.load_posts()
