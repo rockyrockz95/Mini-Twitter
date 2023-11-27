@@ -1,5 +1,5 @@
 email,username,password,image_file,likes,posts
-admin@log.com,admin,password,static\default.png,[],[]
-test@test.com,test001,password,static\default.png,[],[]
-coreyms@gmail.com,CoreyMs,youtube,static\default.png,[],[]
-rockyrockz95@yahoo.com,rockyrockz95,password,static\default.png,[],[]
+admin@gmail.com,admin,password,profile_pics/oscar.jpg,[],[]
+test@test.com,test001,password,profile_pics/cat.png,[],[]
+user@gamil.com,user,password,profile_pics/default.png,[],[]
+rockyrockz95@gmail.com,rockyrockz95,password,profile_pics/wp6469501.jpg,[],[]

@@ -3,7 +3,7 @@
 <h1>Account</h1>
 <div class="content-section">
     <div class="media">
-        <img class="rounded-circle account-img" src="{{ image_file }}" alt="default profile picture">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename=current_user.image_file) }}" alt="default profile picture">
         <div class="media-body">
             <h2 class="account-heading">
                {{ current_user.username }}
@@ -16,6 +16,7 @@
 </div>
 <!-- We need encoding type so that pictures are rendeed correctly-->
 <form method="POST" action="" enctype="multipart/form-data">
+    {{ form.csrf_token }}
     <fieldset class="form-group">
         <legend class="border-bottom mb-4">Account Info</legend>
         <div class="form-group">
@@ -62,4 +63,5 @@
 </div>
 {% endblock content %}
 
+<!-- TODO:  FIGURE OUT TO FIX FORMATTING ISSUES -->
 <!-- Insert source -->
