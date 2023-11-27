@@ -1,15 +1,12 @@
 import os
 from flask import Flask, render_template, flash, url_for, redirect, request, abort
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user,
-)
-from forms import RegistrationForm, LoginForm, EditAccountForm, UserPostForm
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from flask_bcrypt import Bcrypt
+from forms import RegistrationForm, LoginForm, EditAccountForm, UserPostForm, RequestResetForm, ResetPasswordForm
 from data import User
 from datetime import datetime
+from flask_mail import Mail, Message
+from smtplib import SMTP
 
 app = Flask(__name__)
 
@@ -18,8 +15,15 @@ app.config["SECRET_KEY"] = "c5d8384942a409d54c42eca4512864f7"
 
 # for mnanging authentication
 User.load_users()
+bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD')
+mail = Mail(app)
 
 User.Post.load_posts()
 
@@ -28,6 +32,7 @@ User.Post.load_posts()
 @login_manager.user_loader
 # returns the integer described by the user_id, where user_id = email
 def user_loader(user_id):
+    # integer indexed slicing of user dataFrame with email == user_id
     user_data_email = User.users[User.users["email"] == user_id]
     # assume that both will not be changed/empty at the same time
     # TODO: changing username logs out the user, MUST FIX
@@ -90,6 +95,8 @@ def login():
         return redirect(url_for("home"))
 
     form = LoginForm()  # instance of
+    print("Form data - Username:", form.username.data)
+    print("Form data - Password:", form.password.data)  # authetification issue test
     if form.validate_on_submit():
         # return row of matching username
         # returns an error if incorrect username entered. oops
@@ -124,10 +131,51 @@ def logout():
     flash("Logged Out", "info")
     return redirect(url_for("home"))
 
+def send_reset_email(user):
+    if request.method == 'POST':
+        msg = Message('Password Reset Request',
+                  sender='noreply@demo.com',
+                  recipients=[user.email])
+        msg.body = f'''To reset your password, visit the following link:
+If you did not make this request then simply ignore this email and no changes will be made.
+'''
+        mail.send(msg)
 
-@app.route("/reset_password")
+@app.route("/reset_password", methods=['GET', 'POST'])
 def reset_request():
-    return render_template("reset_request.html")
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.users[User.users["email"] == form.email.data].iloc[0]
+        print("User data for password reset request:", user)
+        send_reset_email(user)
+        flash('An email has been sent with instructions to reset your password.', 'info')
+        return redirect(url_for('login'))
+    return render_template("reset_request.html", title="Reset Password", form=form)
+
+@app.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('reset_request'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        # Set the new password for the user using the form data
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        # Update the user's password in the DataFrame
+        User.update_user_password(user.email, form.password.data)
+
+        flash("Password has been updated!", "info")
+        return redirect(url_for("login"))
+
+    return render_template("reset_token.html", title="Reset Password", form=form)
 
 
 # add pitcure file to sys
@@ -182,7 +230,6 @@ def new_post():
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
-            keywords=form.keywords.data,
         )
         flash("Post created!", "success")
         return redirect(url_for("home"))
@@ -197,8 +244,7 @@ def single_post(post_id):
     users = User.users
     posts = User.Post.posts
     # pandas indexing error without int casting
-    # urandom format requires float --> int
-    post_id = int(float(post_id))
+    post_id = int(post_id)
     # find the post with the same post_id
     post = posts[posts["post_id"] == post_id].iloc[0]
     user = users[users["username"] == post.username].iloc[0]
@@ -214,7 +260,7 @@ def update_post(post_id):
     posts = User.Post.posts
     # pandas indexing error without int casting
     # find the post with the same post_id
-    post_id = int(float(post_id))
+    post_id = int(post_id)
     post = posts[posts["post_id"] == post_id].iloc[0]  # shows the correct post
     user = users[users["username"] == post.username].iloc[0]
 
@@ -226,13 +272,11 @@ def update_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
-        post.keywords = form.keywords.data
 
         updted_post = User.Post(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
-            keywords=form.keywords.data,
             post_id=post.post_id,
         )
         User.Post.updatePost(updted_post)
@@ -252,7 +296,7 @@ def update_post(post_id):
 def delete_post(post_id):
     posts = User.Post.posts
     # pandas indexing error without int casting
-    post_id = int(float(post_id))
+    post_id = int(post_id)
     # TODO: Make the whole file more concise
     post = posts[posts["post_id"] == post_id].iloc[0]
     # Only user who made the post can delete it
@@ -270,5 +314,4 @@ if __name__ == "__main__":
 
 # TODO: Add sources for image file and os functions
 """ Sources:
-      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p
-      - ValueError - os.urandom handling: https://stackoverflow.com/questions/1841565/valueerror-invalid-literal-for-int-with-base-10"""
+      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p"""
