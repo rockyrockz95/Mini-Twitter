@@ -286,6 +286,7 @@ class User(UserMixin):
                 print("Post does not exist")
 
         # search results, search term
+        # TODO: want to search for more than one attribute
         @classmethod
         def sresults(cls, attribute, sterm):
             cls.load_posts()
