@@ -2,10 +2,25 @@ import re
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError
+from wtforms import (
+    StringField,
+    PasswordField,
+    SubmitField,
+    BooleanField,
+    TextAreaField,
+    SelectField,
+)
+from wtforms.validators import (
+    DataRequired,
+    Length,
+    Email,
+    EqualTo,
+    Optional,
+    ValidationError,
+)
 from collections import Counter
 from data import User
+
 
 # creating each form as a class, possible using wtforms package
 class LoginForm(FlaskForm):
@@ -54,19 +69,32 @@ class UserPostForm(FlaskForm):
         if count > 3:
             raise ValidationError("Only up to 3 keywords allowed")
 
+
 class RequestResetForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    submit = SubmitField('Request Password Reset')
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    submit = SubmitField("Request Password Reset")
 
     def validate_email(self, email):
         user_data = User.users[User.users["email"] == email.data]
         if user_data.empty:
-            raise ValidationError('There is no account with that email. You must register first.')
-        
+            raise ValidationError(
+                "There is no account with that email. You must register first."
+            )
+
+
 class ResetPasswordForm(FlaskForm):
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Reset Password')
+    password = PasswordField("Password", validators=[DataRequired()])
+    confirm_password = PasswordField(
+        "Confirm Password", validators=[DataRequired(), EqualTo("password")]
+    )
+    submit = SubmitField("Reset Password")
+
+
+class SearchForm(FlaskForm):
+    parameters = [("author"), ("keywords"), ("likes"), ("dislikes")]
+    select = SelectField("Search for: ", choices=parameters)
+    search = StringField("")
+
 
 # Sources:
 #   validators: https://wtforms.readthedocs.io/en/2.3.x/validators/#:~:text=Validates%20that%20input%20was%20provided%20for%20this%20field.,required%20flag%20on%20fields%20it%20is%20used%20on.

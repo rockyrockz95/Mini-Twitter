@@ -289,6 +289,7 @@ def update_post(post_id):
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
+            keywords=form.keywords.data,
             post_id=post.post_id,
         )
         User.Post.updatePost(updted_post)
@@ -319,9 +320,45 @@ def delete_post(post_id):
     return redirect(url_for("home"))
 
 
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    users = User.users
+    results = None
+
+    # Did not want to pass a form to layout (base temp) --> reauest.method
+    #   to access input directly
+    if request.method == "POST":
+        results = User.Post.sresults(
+            request.form.get("select"), request.form.get("search")
+        )
+        if results is not None:
+            flash("Search Results", "info")
+            return render_template("results.html", results=results, users=users)
+        else:
+            flash("No Results Found", "warning")
+            return redirect(url_for("home"))
+
+    # laoding page w/o using searchbar
+    return redirect(url_for("home"))
+
+
+"""
+# TODO: TypeError: missing posititional argument
+@app.route("/like", methods=["GET"])
+def like_post(post_id):
+    post_id = int(float(post_id))
+    post = User.Post.postUserPair(post_id)[0]
+    post_index = User.Post.findPost(post)
+
+    post.loc[post_index, "likes"] = post.loc[post_index, "likes"] + 1
+
+    return redirect(url_for("home")) """
+
+
 if __name__ == "__main__":
     app.run(debug=True)
 
 # TODO: Add sources for image file and os functions
 """ Sources:
-      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p"""
+      - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p
+      - Request Object/Search route: https://www.geeksforgeeks.org/python-flask-request-object/ """

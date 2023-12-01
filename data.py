@@ -29,14 +29,14 @@ class User(UserMixin):
     users = pd.DataFrame()
 
     def get_reset_token(self):
-        s = Serializer(app.config['SECRET_KEY'])
-        return s.dumps({'user_id': self.id})
+        s = Serializer(app.config["SECRET_KEY"])
+        return s.dumps({"user_id": self.id})
 
     @staticmethod
     def verify_reset_token(token, expires_sec=1800):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(app.config["SECRET_KEY"])
         try:
-            user_id = s.loads(token, max_age=expires_sec)['user_id']
+            user_id = s.loads(token, max_age=expires_sec)["user_id"]
         except:
             return None
 
@@ -60,7 +60,7 @@ class User(UserMixin):
         )
 
         return user if isinstance(user, User) else None
-           
+
     # for explicitly loading at startup
     @classmethod
     def load_users(cls):
@@ -137,12 +137,16 @@ class User(UserMixin):
             "content",
             "username",
             "keywords",
+            # could be an int, int, user pair -- determine which
+            "likes",
+            "dislikes",
+            # TODO: make a choice, ad or standard --> account balance monitor; Make setter
+            "type",
             "date_posted",
             "post_id",
         ]
         posts = pd.DataFrame(columns=columns)
         # don't want any post to have the same id
-        # TODO: Look into os.urandom
         post_id = int.from_bytes(urandom(1), "little")
 
         # check the syntax of this
@@ -151,6 +155,9 @@ class User(UserMixin):
             self.content = content
             self.username = username
             self.keywords = keywords
+            self.likes = 0
+            self.dislikes = 0
+            self.type = "standard"
             self.date_posted = datetime.utcnow()
             # keeps post_id from changing between updates
             if post_id is None:
@@ -169,6 +176,9 @@ class User(UserMixin):
             content,
             username,
             keywords,
+            likes=0,
+            dislikes=0,
+            type="standard",
             date_posted=datetime.utcnow(),
         ):
             cls.load_posts()
@@ -179,6 +189,9 @@ class User(UserMixin):
                         content,
                         username,
                         keywords,
+                        likes,
+                        dislikes,
+                        type,
                         date_posted.strftime("%m-%d-%Y"),
                         cls.post_id,
                     ]
@@ -190,30 +203,6 @@ class User(UserMixin):
             cls.posts.to_csv("posts.csv", header="posts", index=False)
 
             print("Current posts: ", cls.posts)
-
-        @classmethod
-        def postUserPair(cls, post_id):
-            # pandas indexing error without int casting
-            # find the post with the same post_id
-            User.load_users()
-            users = User.users
-
-            post = cls.posts[cls.posts["post_id"] == post_id].iloc[0]
-            user = users[users["username"] == post.username].iloc[0]
-
-            return post, user
-
-        # common function
-        # TODO: check if can be used outside of User
-        @classmethod
-        def findPost(cls, post):
-            cls.load_posts()
-
-            # find the index of the post with an existing post_id
-            if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
-                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
-
-            return post_index
 
         @classmethod
         def updatePost(cls, post):
@@ -239,10 +228,92 @@ class User(UserMixin):
             else:
                 print("Post does not exist")
 
+        @classmethod
+        def postUserPair(cls, post_id):
+            # pandas indexing error without int casting
+            # find the post with the same post_id
+            User.load_users()
+            users = User.users
+
+            post = cls.posts[cls.posts["post_id"] == post_id].iloc[0]
+            user = users[users["username"] == post.username].iloc[0]
+
+            return post, user
+
+        # common function
+        @classmethod
+        def findPost(cls, post):
+            cls.load_posts()
+
+            # find the index of the post with an existing post_id
+            if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
+                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
+
+            return post_index
+
+        # getters for seach parameters
+        # TODO: condense into one function, takes another parameter=attribute; input into return statement search
+        @classmethod
+        def getLikes(cls, post):
+            post_index = cls.findPost(post)
+            if post_index is not None:
+                return cls.posts.loc[post_index, "likes"]
+            else:
+                print("Post does not exist")
+
+        @classmethod
+        def getDislikes(cls, post):
+            post_index = cls.findPost(post)
+            if post_index is not None:
+                return cls.posts.loc[post_index, "dislikes"]
+            else:
+                print("Post does not exist")
+
+        @classmethod
+        def getkeywords(cls, post):
+            post_index = cls.findPost(post)
+            if post_index is not None:
+                return cls.posts.loc[post_index, "keywords"]
+            else:
+                print("Post does not exist")
+
+        @classmethod
+        def getAuthor(cls, post):
+            post_index = cls.findPost(post)
+            if post_index is not None:
+                return cls.posts.loc[post_index, "username"]
+            else:
+                print("Post does not exist")
+
+        # search results, search term
+        @classmethod
+        def sresults(cls, attribute, sterm):
+            cls.load_posts()
+            if attribute == "username" or attribute == "keywords":
+                # results not case-sensitive
+                post = cls.posts[cls.posts[attribute].str.lower() == sterm.lower()]
+
+            elif attribute == "likes" or attribute == "dislikes":
+                # Only numeric values allowed
+                try:
+                    sterm = int(sterm)
+                    post = cls.posts[cls.posts[attribute] >= sterm]
+                except ValueError:
+                    print("Invalid input for likes/dislikes")
+
+            if not post.empty:
+                return post
+            else:
+                print("Post does not exist")
+                return None
+
+        """'
+        @classmethod
+        def addLike(cls):
+            print("liked!") """
+
 
 User.Post.load_posts()
-post = User.Post.posts.iloc[0]
-User.Post.postUserPair(post.post_id)
 # for index, post in User.Post.posts.iterrows():
 #     print(post)
 

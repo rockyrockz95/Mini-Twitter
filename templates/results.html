@@ -1,6 +1,6 @@
 {%extends "layout.html"%}
 {% block content %}
-{% for post in posts.itertuples() %}
+{% for post in results.itertuples() %}
   <article class="media content-section mb-3">
     <!-- Booleans indexing to find the image_file of the matching user, post username -->
       <img class="rounded-circle article-img" src="{{ url_for('static', filename=users.loc[users['username'] == post.username, 'image_file'].values[0])}}" alt="user profile picture">
@@ -24,8 +24,3 @@
   </article>
 {% endfor %}
 {% endblock content %}
-
-<!-- boolean indexing: for finding the image_file matched with the post's users
-        https://www.geeksforgeeks.org/boolean-indexing-in-pandas/-->
-<!-- intertuples() : returns iterator, needed to show all posts
-        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.itertuples.html -->
