@@ -342,17 +342,13 @@ def search():
     return redirect(url_for("home"))
 
 
-"""
 # TODO: TypeError: missing posititional argument
-@app.route("/like", methods=["GET"])
+@app.route("/like/<post_id>", methods=["GET"])
 def like_post(post_id):
     post_id = int(float(post_id))
-    post = User.Post.postUserPair(post_id)[0]
-    post_index = User.Post.findPost(post)
-
-    post.loc[post_index, "likes"] = post.loc[post_index, "likes"] + 1
-
-    return redirect(url_for("home")) """
+    User.Post.addLike(post_id)
+    flash("Liked post", "success")
+    return redirect(url_for("home"))
 
 
 if __name__ == "__main__":

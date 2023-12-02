@@ -90,11 +90,5 @@ class ResetPasswordForm(FlaskForm):
     submit = SubmitField("Reset Password")
 
 
-class SearchForm(FlaskForm):
-    parameters = [("author"), ("keywords"), ("likes"), ("dislikes")]
-    select = SelectField("Search for: ", choices=parameters)
-    search = StringField("")
-
-
 # Sources:
 #   validators: https://wtforms.readthedocs.io/en/2.3.x/validators/#:~:text=Validates%20that%20input%20was%20provided%20for%20this%20field.,required%20flag%20on%20fields%20it%20is%20used%20on.

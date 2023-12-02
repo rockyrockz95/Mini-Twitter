@@ -287,6 +287,7 @@ class User(UserMixin):
 
         # search results, search term
         # TODO: want to search for more than one attribute
+        # TODO: partial search: rocky --> rockyrockz95
         @classmethod
         def sresults(cls, attribute, sterm):
             cls.load_posts()
@@ -308,10 +309,23 @@ class User(UserMixin):
                 print("Post does not exist")
                 return None
 
-        """'
+        """
+           Like/Dislike parameters
+              - On button press, add a like to the post
+              - Add the post_id to the user
+                   - If a user has the post_id in their likes, no like added
+                   - else, add the like to the post_id
+        """
+
         @classmethod
-        def addLike(cls):
-            print("liked!") """
+        def addLike(cls, post_id):
+            post = cls.postUserPair(post_id)[0]
+            post_index = cls.findPost(post)
+
+            cls.posts.loc[post_index, "likes"] += 1
+            cls.posts.to_csv("posts.csv", index=False)
+
+            print(cls.posts.loc[post_index, "likes"], "liked!")
 
 
 User.Post.load_posts()
