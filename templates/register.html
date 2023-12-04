@@ -52,10 +52,9 @@
       </div>
     </div>
     <div class="form-group row mb-3">
-        <!-- Change formatting for this line-->
-        <label for="inputPassword3" class="col-sm-3 col-form-label">Confirm Password</label>
-        <div class="col-sm-10">
-          {% if form.confirm_password.errors %}
+      <label for="inputConfirmPassword" class="col-sm-3 col-form-label">Confirm Password</label>
+      <div class="col-sm-10">
+        {% if form.confirm_password.errors %}
           {{form.confirm_password(class="form-control is-invalid")}}
           <div class="invalid-feedback">
             {% for error in form.confirm_password.errors %}
@@ -63,10 +62,20 @@
             {% endfor %}
           </div>
         {% else %}
-           <input type="password" class="form-control" id="inputPassword3" name="confirm_password">
+           <input type="password" class="form-control" id="inputConfirmPassword" name="confirm_password">
         {% endif %}
-        </div>
       </div>
+    </div>
+    <div class="form-group row mb-3">
+      <label for="user_role" class="col-sm-3 col-form-label">Account Type</label>
+      <div class="col-sm-10">
+          <select name="user_role" id="user_role" class="form-control" required>
+              <option value="" disabled selected>Select account type</option>
+              <option value="OU">Personal</option>
+              <option value="CU">Business</option>
+          </select>
+      </div>
+    </div>
     <button type="submit" class="btn btn-success" style="margin-bottom:30px;">Sign Up</button>
   </form>
   <div class="border-top pt-3">
