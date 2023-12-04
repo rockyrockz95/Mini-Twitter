@@ -39,6 +39,11 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
+    user_role = SelectField(
+        'Account Type', 
+        choices=[('OU', 'Ordinary User'), ('CU', 'Corporate User')],
+        validators=[DataRequired()]
+    )
     submit = SubmitField("Sign Up")
 
 
@@ -89,6 +94,30 @@ class ResetPasswordForm(FlaskForm):
     )
     submit = SubmitField("Reset Password")
 
+class AdminCreateUserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    role = SelectField(
+        'Role', 
+        choices=[
+            ('', 'Select a role'),
+            ('SU', 'Super User'),
+            ('TU', 'Trendy User'), 
+            ('OU', 'Ordinary User'),
+            ('CU', 'Corporate User') 
+        ],
+        validators=[DataRequired()]
+    )
+    submit = SubmitField('Create User')
+
+class AdminRemoveUserForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    submit = SubmitField('Remove User')
+
+class AdminRemovePostForm(FlaskForm):
+    post_id = StringField('Post ID', validators=[DataRequired()])
+    submit = SubmitField('Remove Post')
 
 # Sources:
 #   validators: https://wtforms.readthedocs.io/en/2.3.x/validators/#:~:text=Validates%20that%20input%20was%20provided%20for%20this%20field.,required%20flag%20on%20fields%20it%20is%20used%20on.
