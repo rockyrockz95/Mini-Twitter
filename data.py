@@ -17,11 +17,12 @@ from os import urandom
 
 
 class User(UserMixin):
-    def __init__(self, email, username, password, image_file, likes, posts):
+    def __init__(self, email, username, password, user_role, image_file, likes, posts):
         self.id = email
         self.email = email
         self.username = username
         self.password = password
+        self.user_role = user_role
         self.image_file = image_file
         self.likes = likes
         self.posts = posts
@@ -54,6 +55,7 @@ class User(UserMixin):
             email=user_data.iloc[0]["email"],
             username=user_data.iloc[0]["username"],
             password=user_data.iloc[0]["password"],
+            user_role=user_data.iloc[0]["user_role"],
             image_file=user_data.iloc[0]["image_file"],
             likes=user_data.iloc[0]["likes"],
             posts=user_data.iloc[0]["posts"],
@@ -69,18 +71,33 @@ class User(UserMixin):
 
     @classmethod
     def createUser(
-        cls, email, username, password, image_file="profile_pics/default.png"
+        cls, email, username, password, user_role, image_file="profile_pics/default.png"
     ):
         cls.load_users()
         # trying to invoke flask_login for this user
-        new_user = User(email, username, password, "", [], [])
+        new_user = User(email, username, password, user_role, "", [], [])
         new_user = pd.DataFrame(
-            [[email, username, password, image_file, [], []]],
+            [[email, username, password, user_role, image_file, [], []]],
             columns=cls.users.columns,
         )
         cls.users = pd.concat([cls.users, new_user], ignore_index=True)
         cls.users.to_csv("data.csv", index=False)
         print("Registered users: ", cls.users)
+
+    @classmethod
+    def removeUser(cls, username):
+        cls.load_users()
+        if not cls.users[cls.users['username'] == username].empty:
+            # Remove the user
+            cls.users = cls.users[cls.users['username'] != username]
+            cls.users.to_csv('data.csv', index=False)
+
+            # Remove user posts
+            User.Post.removeUserPosts(username)
+
+            print("User removed:", username)
+        else:
+            print("User not found:", username)
 
     @classmethod
     def updateUser(cls, curr_user):
@@ -99,6 +116,7 @@ class User(UserMixin):
                 curr_user.email,
                 curr_user.username,
                 curr_user.password,
+                curr_user.user_role,
                 curr_user.image_file,
                 curr_user.likes,
                 curr_user.posts,
@@ -227,6 +245,27 @@ class User(UserMixin):
                 cls.posts.to_csv("posts.csv", index=False)
             else:
                 print("Post does not exist")
+
+        @classmethod
+        def deletePostById(cls, post_id): # Function solely meant for Super Users
+            cls.load_posts()
+
+            # Find and delete post with matching post_id
+            if not cls.posts[cls.posts["post_id"] == post_id].empty:
+                cls.posts = cls.posts[cls.posts["post_id"] != post_id]
+                cls.posts.to_csv("posts.csv", index=False)
+                print("Post with ID", post_id, "has been deleted")
+            else:
+                print("Post with ID", post_id, "not found")
+
+        @classmethod
+        def removeUserPosts(cls, username):
+            cls.load_posts()
+            # Filter out post by specified username
+            cls.posts = cls.posts[cls.posts['username'] != username]
+            cls.posts.to_csv('posts.csv', index=False)
+
+            print("Posts removed for user:", username)
 
         @classmethod
         def postUserPair(cls, post_id):
