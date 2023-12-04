@@ -15,6 +15,9 @@ from forms import (
     UserPostForm,
     RequestResetForm,
     ResetPasswordForm,
+    AdminCreateUserForm,
+    AdminRemoveUserForm,
+    AdminRemovePostForm
 )
 from data import User
 from datetime import datetime
@@ -69,6 +72,7 @@ def user_loader(user_id):
         email=user_data["email"],
         username=user_data["username"],
         password=user_data["password"],
+        user_role=user_data["user_role"],
         image_file=user_data["image_file"],
         likes=user_data["likes"],
         posts=user_data["posts"],
@@ -88,17 +92,14 @@ def home():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    # logged in user does not need to login in again
     if current_user.is_authenticated:
         return redirect(url_for("home"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        User.createUser(form.email.data, form.username.data, form.password.data)
+        User.createUser(form.email.data, form.username.data, form.password.data, form.user_role.data)
         flash("Account Created!", "info")
         return redirect(url_for("login"))
-
     return render_template("register.html", title="Register", form=form)
-
 
 # passing in GET and POST methods allows us to submit data via the page
 # TODO: Visual feedback for incorrectly logging in
@@ -121,6 +122,7 @@ def login():
                     email=user["email"],
                     username=user["username"],
                     password=user["password"],
+                    user_role=user["user_role"],
                     image_file=user["image_file"],
                     likes=user["likes"],
                     posts=user["posts"],
@@ -349,6 +351,51 @@ def like_post(post_id):
     User.Post.addLike(post_id)
     flash("Liked post", "success")
     return redirect(url_for("home"))
+
+@app.route("/admin", methods=["GET", "POST"])
+@login_required
+def admin():
+    if current_user.user_role != "SU":
+        abort(403)  # Restrict access to Super Users
+
+    create_user_form = AdminCreateUserForm()
+    remove_user_form = AdminRemoveUserForm()
+    remove_post_form = AdminRemovePostForm()
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'create_user' and create_user_form.validate():
+            # Logic to create a new user
+            User.createUser(
+                email=create_user_form.email.data,
+                username=create_user_form.username.data,
+                password=create_user_form.password.data,
+                user_role=create_user_form.role.data
+            )
+            flash("New user created!", "success")
+            return redirect(url_for('admin'))
+
+        elif action == 'remove_user' and remove_user_form.validate():
+            # Logic to remove a user
+            User.removeUser(remove_user_form.username.data)
+            flash("User removed!", "success")
+            return redirect(url_for('admin'))
+
+        elif action == 'remove_post' and remove_post_form.validate():
+            # Logic to remove a post
+            post_id = remove_post_form.post_id.data
+            User.Post.deletePost(post_id)
+            flash("Post removed!", "success")
+            return redirect(url_for('admin'))
+
+    return render_template(
+        "admin.html", 
+        create_user_form=create_user_form, 
+        remove_user_form=remove_user_form, 
+        remove_post_form=remove_post_form
+    )
+
 
 
 if __name__ == "__main__":
