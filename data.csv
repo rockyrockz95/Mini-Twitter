@@ -1,5 +1,6 @@
-email,username,password,user_role,image_file,likes,dislikes,posts
-admin@gmail.com,admin,password,SU,profile_pics/oscar.jpg,,,[]
-rockyrockz95@gmail.com,rockyrockz95,password,OU,profile_pics/wp6469501.jpg,,,[]
-fakeemail@gmail.com,real,password,OU,profile_pics/default.png,,,[]
-test@test.com,test001,password,OU,profile_pics/cat.png,,,[]
+email,username,password,user_role,image_file,likes,posts
+admin@gmail.com,admin,password,SU,profile_pics/oscar.jpg,[],[]
+test@test.com,test001,password,OU,profile_pics/cat.png,[],[]
+user@gamil.com,user,password,OU,profile_pics/default.png,[],[]
+rockyrockz95@gmail.com,rockyrockz95,password,OU,profile_pics/wp6469501.jpg,[],[]
+fakeemail@gmail.com,real,password,OU,profile_pics/default.png,[],[]

@@ -83,16 +83,14 @@ class User(UserMixin):
         print("Registered users: ", cls.users)
 
     @classmethod
-    def removeUser(cls, username):
+    def removeUser(cls, username):  # Function solely meant for Super Users
         cls.load_users()
         if not cls.users[cls.users["username"] == username].empty:
             # Remove the user
             cls.users = cls.users[cls.users["username"] != username]
             cls.users.to_csv("data.csv", index=False)
-
             # Remove user posts
             User.Post.removeUserPosts(username)
-
             print("User removed:", username)
         else:
             print("User not found:", username)
@@ -283,7 +281,6 @@ class User(UserMixin):
         @classmethod
         def deletePostById(cls, post_id):  # Function solely meant for Super Users
             cls.load_posts()
-
             # Find and delete post with matching post_id
             if not cls.posts[cls.posts["post_id"] == post_id].empty:
                 cls.posts = cls.posts[cls.posts["post_id"] != post_id]
@@ -293,12 +290,11 @@ class User(UserMixin):
                 print("Post with ID", post_id, "not found")
 
         @classmethod
-        def removeUserPosts(cls, username):
+        def removeUserPosts(cls, username):  # Function solely meant for Super Users
             cls.load_posts()
             # Filter out post by specified username
             cls.posts = cls.posts[cls.posts["username"] != username]
             cls.posts.to_csv("posts.csv", index=False)
-
             print("Posts removed for user:", username)
 
         @classmethod

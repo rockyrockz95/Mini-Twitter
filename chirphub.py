@@ -424,9 +424,7 @@ def admin():
 
         elif action == "remove_post" and remove_post_form.validate():
             # Logic to remove a post
-            post_id = remove_post_form.post_id.data
-            post_id = int(post_id)
-            User.Post.deletePostById(post_id)
+            User.Post.deletePostById(int(remove_post_form.post_id.data))
             flash("Post removed!", "success")
             return redirect(url_for("admin"))
 
