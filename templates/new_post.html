@@ -4,7 +4,7 @@
 {% block content %}
 <div class="content-section">
     <!--method is for how to send form-data get: URL variables, POST=http post transaction-->
-    <form method="POST" action="">
+    <form method="POST" action="" enctype="multipart/form-data">
         <!--hidden_tag() is part of cyber attack protection-->
         {{ form.csrf_token }}
         <fieldset class="form-group"> 
@@ -35,6 +35,15 @@
                     </div>
                 {% else %}
                     {{ form.content(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.media.label() }}
+                {{ form.media(class="form-control-file") }}
+                {% if form.media.errors %}
+                    {% for error in form.media.errors %}
+                        <span class="text-danger">{{ error }}</span></br>
+                    {% endfor %}
                 {% endif %}
             </div>
             <div class="form-group mb-3">

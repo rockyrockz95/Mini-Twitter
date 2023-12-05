@@ -24,7 +24,6 @@ class User(UserMixin):
         self.password = password
         self.user_role = user_role
         self.image_file = image_file
-        self.likes = likes
         self.posts = posts
 
     users = pd.DataFrame()
@@ -57,7 +56,6 @@ class User(UserMixin):
             password=user_data.iloc[0]["password"],
             user_role=user_data.iloc[0]["user_role"],
             image_file=user_data.iloc[0]["image_file"],
-            likes=user_data.iloc[0]["likes"],
             posts=user_data.iloc[0]["posts"],
         )
 
@@ -87,10 +85,10 @@ class User(UserMixin):
     @classmethod
     def removeUser(cls, username):
         cls.load_users()
-        if not cls.users[cls.users['username'] == username].empty:
+        if not cls.users[cls.users["username"] == username].empty:
             # Remove the user
-            cls.users = cls.users[cls.users['username'] != username]
-            cls.users.to_csv('data.csv', index=False)
+            cls.users = cls.users[cls.users["username"] != username]
+            cls.users.to_csv("data.csv", index=False)
 
             # Remove user posts
             User.Post.removeUserPosts(username)
@@ -110,7 +108,7 @@ class User(UserMixin):
             user_index = cls.users[cls.users["email"] == curr_user.email].index[0]
         # not condition: iloc returns IndexError for empty dataFrame
 
-        # update the user parameterin the databases
+        # update the user parameter in the databases
         if user_index is not None:
             cls.users.loc[user_index] = [
                 curr_user.email,
@@ -118,7 +116,6 @@ class User(UserMixin):
                 curr_user.password,
                 curr_user.user_role,
                 curr_user.image_file,
-                curr_user.likes,
                 curr_user.posts,
             ]
             cls.users.to_csv("data.csv", index=False)
@@ -149,11 +146,28 @@ class User(UserMixin):
     def is_authenticated(self):
         return True
 
+    # taboo moderation by SU
+    class TabooWords:
+        words = set([])
+
+        @classmethod
+        def add_words(cls, new_words):
+            cls.words.update(new_words)
+
+        # TODO: test, make more concise
+        @classmethod
+        def replace_taboo(cls, post):
+            for word in cls.words:
+                new_post = post.replace(word, "*" * len(word))
+
+            return new_post
+
     class Post:
         columns = [
             "title",
             "content",
             "username",
+            "media",
             "keywords",
             # could be an int, int, user pair -- determine which
             "likes",
@@ -163,15 +177,30 @@ class User(UserMixin):
             "date_posted",
             "post_id",
         ]
+        like_cols = ["username", "post_id"]
+        complaint_cols = ["username", "post_id", "content"]
+
         posts = pd.DataFrame(columns=columns)
+
+        # lists in DFs difficult to work with
+        likes = pd.DataFrame(columns=like_cols)
+        likes.set_index("post_id", drop=False, inplace=True)
+        dislikes = pd.DataFrame(columns=like_cols)
+        dislikes.set_index("post_id", drop=False, inplace=True)
+        complaints = pd.DataFrame(columns=complaint_cols)
+        complaints.set_index("post_id", drop=False, inplace=True)
+
         # don't want any post to have the same id
         post_id = int.from_bytes(urandom(1), "little")
 
         # check the syntax of this
-        def __init__(self, title, content, username, keywords="", post_id=None):
+        def __init__(
+            self, title, content, username, media="", keywords="", post_id=None
+        ):
             self.title = title
             self.content = content
             self.username = username
+            self.media = media
             self.keywords = keywords
             self.likes = 0
             self.dislikes = 0
@@ -186,6 +215,9 @@ class User(UserMixin):
         @classmethod
         def load_posts(cls):
             cls.posts = pd.read_csv("posts.csv")
+            cls.likes = pd.read_csv("likes.csv")
+            cls.dislikes = pd.read_csv("dislikes.csv")
+            cls.complaints = pd.read_csv("complaints.csv")
 
         @classmethod
         def createPost(
@@ -193,6 +225,7 @@ class User(UserMixin):
             title,
             content,
             username,
+            media,
             keywords,
             likes=0,
             dislikes=0,
@@ -206,6 +239,7 @@ class User(UserMixin):
                         title,
                         content,
                         username,
+                        media,
                         keywords,
                         likes,
                         dislikes,
@@ -247,7 +281,7 @@ class User(UserMixin):
                 print("Post does not exist")
 
         @classmethod
-        def deletePostById(cls, post_id): # Function solely meant for Super Users
+        def deletePostById(cls, post_id):  # Function solely meant for Super Users
             cls.load_posts()
 
             # Find and delete post with matching post_id
@@ -262,8 +296,8 @@ class User(UserMixin):
         def removeUserPosts(cls, username):
             cls.load_posts()
             # Filter out post by specified username
-            cls.posts = cls.posts[cls.posts['username'] != username]
-            cls.posts.to_csv('posts.csv', index=False)
+            cls.posts = cls.posts[cls.posts["username"] != username]
+            cls.posts.to_csv("posts.csv", index=False)
 
             print("Posts removed for user:", username)
 
@@ -324,9 +358,6 @@ class User(UserMixin):
             else:
                 print("Post does not exist")
 
-        # search results, search term
-        # TODO: want to search for more than one attribute
-        # TODO: partial search: rocky --> rockyrockz95
         @classmethod
         def sresults(cls, attribute, sterm):
             cls.load_posts()
@@ -348,26 +379,55 @@ class User(UserMixin):
                 print("Post does not exist")
                 return None
 
-        """
-           Like/Dislike parameters
-              - On button press, add a like to the post
-              - Add the post_id to the user
-                   - If a user has the post_id in their likes, no like added
-                   - else, add the like to the post_id
-        """
-
         @classmethod
-        def addLike(cls, post_id):
+        def add_like(cls, post_id, curr_username):
             post = cls.postUserPair(post_id)[0]
             post_index = cls.findPost(post)
+            # why is this causing an error
+            like_row = cls.likes.loc[
+                (cls.likes["username"] == curr_username)
+                & (cls.likes["post_id"] == post_id)
+            ]
+            new_row = pd.DataFrame({"post_id": [post_id], "username": [curr_username]})
 
-            cls.posts.loc[post_index, "likes"] += 1
-            cls.posts.to_csv("posts.csv", index=False)
+            if not like_row.empty:
+                print("Already liked post")
+                return 0
+            else:
+                cls.posts.loc[post_index, "likes"] += 1
+                cls.likes = pd.concat([cls.likes, new_row], ignore_index=True)
 
-            print(cls.posts.loc[post_index, "likes"], "liked!")
+                # save like data
+                cls.posts.to_csv("posts.csv", index=False)
+                cls.likes.to_csv("likes.csv", index=False)
+                return 1
+
+        # TU: likes = dislikes
+        @classmethod
+        def add_dislike(cls, post_id, curr_username):
+            post = cls.postUserPair(post_id)[0]
+            post_index = cls.findPost(post)
+            # why is this causing an error
+            dislike_row = cls.dislikes.loc[
+                (cls.dislikes["username"] == curr_username)
+                & (cls.dislikes["post_id"] == post_id)
+            ]
+            new_row = pd.DataFrame({"post_id": [post_id], "username": [curr_username]})
+
+            if not dislike_row.empty:
+                print("Already liked post")
+                return 0
+            else:
+                cls.posts.loc[post_index, "dislikes"] += 1
+                cls.dislikes = pd.concat([cls.dislikes, new_row], ignore_index=True)
+
+                # save like data
+                cls.posts.to_csv("posts.csv", index=False)
+                cls.dislikes.to_csv("dislikes.csv", index=False)
+                return 1
 
 
-User.Post.load_posts()
+# User.Post.load_posts()
 # for index, post in User.Post.posts.iterrows():
 #     print(post)
 

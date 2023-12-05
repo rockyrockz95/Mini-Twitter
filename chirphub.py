@@ -17,7 +17,7 @@ from forms import (
     ResetPasswordForm,
     AdminCreateUserForm,
     AdminRemoveUserForm,
-    AdminRemovePostForm
+    AdminRemovePostForm,
 )
 from data import User
 from datetime import datetime
@@ -96,10 +96,13 @@ def register():
         return redirect(url_for("home"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        User.createUser(form.email.data, form.username.data, form.password.data, form.user_role.data)
+        User.createUser(
+            form.email.data, form.username.data, form.password.data, form.user_role.data
+        )
         flash("Account Created!", "info")
         return redirect(url_for("login"))
     return render_template("register.html", title="Register", form=form)
+
 
 # passing in GET and POST methods allows us to submit data via the page
 # TODO: Visual feedback for incorrectly logging in
@@ -200,10 +203,10 @@ def reset_token(token):
     return render_template("reset_token.html", title="Reset Password", form=form)
 
 
-# add pitcure file to sys
+# add picture file to sys
 # needed for editing the user profile picture
-def picture_path(image_file):
-    img_path = os.path.join("static/profile_pics", image_file.filename)
+def picture_path(image_file, static_path):
+    img_path = os.path.join(static_path, image_file.filename)
     image_file.save(img_path)
 
     return img_path
@@ -216,7 +219,7 @@ def account():
     if form.validate_on_submit():
         # add new photo if uploaded via form
         if form.picture.data:
-            image_file = picture_path(form.picture.data)
+            image_file = picture_path(form.picture.data, "static/profile_pics")
             current_user.image_file = image_file
 
         # update database based on form data
@@ -248,10 +251,17 @@ def account():
 def new_post():
     form = UserPostForm()
     if form.validate_on_submit():
+        if form.media.data:
+            media_file = picture_path(form.media.data, "static/post_media")
+        else:
+            media_file = ""
+
         User.Post.createPost(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
+            media=media_file,
+            keywords=form.keywords.data,
         )
         flash("Post created!", "success")
         return redirect(url_for("home"))
@@ -344,13 +354,43 @@ def search():
     return redirect(url_for("home"))
 
 
-# TODO: TypeError: missing posititional argument
+# TODO: If time, combine
 @app.route("/like/<post_id>", methods=["GET"])
 def like_post(post_id):
     post_id = int(float(post_id))
-    User.Post.addLike(post_id)
-    flash("Liked post", "success")
+
+    if current_user.is_authenticated:
+        if User.Post.add_like(post_id, current_user.username) == 1:
+            flash("Liked post", "success")
+        else:
+            flash("Already liked post", "info")
+    else:
+        flash("Must be logged in to like posts", "warning")
+
     return redirect(url_for("home"))
+
+
+@app.route("/dislike/<post_id>", methods=["GET"])
+def dislike_post(post_id):
+    post_id = int(float(post_id))
+
+    if current_user.is_authenticated:
+        if User.Post.add_dislike(post_id, current_user.username) == 1:
+            flash("Disiked post", "danger")
+        else:
+            flash("Already disliked post", "info")
+    else:
+        flash("Must be logged in to dislike posts", "warning")
+
+    return redirect(url_for("home"))
+
+
+# TODO: Add complaint form, finish implementation
+@app.route("/complaint/<post_id>")
+def submit_complaint(post_id):
+    flash("Complaint submitted", "info")
+    return redirect(url_for("home"))
+
 
 @app.route("/admin", methods=["GET", "POST"])
 @login_required
@@ -362,40 +402,40 @@ def admin():
     remove_user_form = AdminRemoveUserForm()
     remove_post_form = AdminRemovePostForm()
 
-    if request.method == 'POST':
-        action = request.form.get('action')
+    if request.method == "POST":
+        action = request.form.get("action")
 
-        if action == 'create_user' and create_user_form.validate():
+        if action == "create_user" and create_user_form.validate():
             # Logic to create a new user
             User.createUser(
                 email=create_user_form.email.data,
                 username=create_user_form.username.data,
                 password=create_user_form.password.data,
-                user_role=create_user_form.role.data
+                user_role=create_user_form.role.data,
             )
             flash("New user created!", "success")
-            return redirect(url_for('admin'))
+            return redirect(url_for("admin"))
 
-        elif action == 'remove_user' and remove_user_form.validate():
+        elif action == "remove_user" and remove_user_form.validate():
             # Logic to remove a user
             User.removeUser(remove_user_form.username.data)
             flash("User removed!", "success")
-            return redirect(url_for('admin'))
+            return redirect(url_for("admin"))
 
-        elif action == 'remove_post' and remove_post_form.validate():
+        elif action == "remove_post" and remove_post_form.validate():
             # Logic to remove a post
             post_id = remove_post_form.post_id.data
-            User.Post.deletePost(post_id)
+            post_id = int(post_id)
+            User.Post.deletePostById(post_id)
             flash("Post removed!", "success")
-            return redirect(url_for('admin'))
+            return redirect(url_for("admin"))
 
     return render_template(
-        "admin.html", 
-        create_user_form=create_user_form, 
-        remove_user_form=remove_user_form, 
-        remove_post_form=remove_post_form
+        "admin.html",
+        create_user_form=create_user_form,
+        remove_user_form=remove_user_form,
+        remove_post_form=remove_post_form,
     )
-
 
 
 if __name__ == "__main__":
