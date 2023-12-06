@@ -18,6 +18,7 @@ from forms import (
     AdminCreateUserForm,
     AdminRemoveUserForm,
     AdminRemovePostForm,
+    PostComplaintForm,
 )
 from data import User
 from datetime import datetime
@@ -51,9 +52,7 @@ def user_loader(user_id):
     # integer indexed slicing of user dataFrame with email == user_id
     user_data_email = User.users[User.users["email"] == user_id]
     # assume that both will not be changed/empty at the same time
-    # TODO: changing username logs out the user, MUST FIX
-    # TODO: find way to make this more concise
-    # TODO: username and email can't be changed at the same time, leave as is or fix?
+    # TODO: changing username logs out the user
 
     # if the email is being changed, identify user by their username
     if not user_data_email.empty:
@@ -74,7 +73,6 @@ def user_loader(user_id):
         password=user_data["password"],
         user_role=user_data["user_role"],
         image_file=user_data["image_file"],
-        likes=user_data["likes"],
         posts=user_data["posts"],
     )
 
@@ -127,7 +125,6 @@ def login():
                     password=user["password"],
                     user_role=user["user_role"],
                     image_file=user["image_file"],
-                    likes=user["likes"],
                     posts=user["posts"],
                 )
                 login_user(user_instance)
@@ -262,6 +259,7 @@ def new_post():
             username=current_user.username,
             media=media_file,
             keywords=form.keywords.data,
+            type=form.type.data,
         )
         flash("Post created!", "success")
         return redirect(url_for("home"))
@@ -278,6 +276,9 @@ def single_post(post_id):
     post_id = int(float(post_id))
     posts = User.Post.posts
     post, user = User.Post.postUserPair(post_id)
+    # every click the post should get a view added
+    # TODO: check
+    User.Post.add_view(post)
 
     return render_template("single_post.html", posts=posts, user=user, post=post)
 
@@ -355,7 +356,7 @@ def search():
 
 
 # TODO: If time, combine
-@app.route("/like/<post_id>", methods=["GET"])
+@app.route("/like/<post_id>")
 def like_post(post_id):
     post_id = int(float(post_id))
 
@@ -370,7 +371,7 @@ def like_post(post_id):
     return redirect(url_for("home"))
 
 
-@app.route("/dislike/<post_id>", methods=["GET"])
+@app.route("/dislike/<post_id>")
 def dislike_post(post_id):
     post_id = int(float(post_id))
 
@@ -386,10 +387,15 @@ def dislike_post(post_id):
 
 
 # TODO: Add complaint form, finish implementation
-@app.route("/complaint/<post_id>")
+@app.route("/complaint/<post_id>", methods=["GET", "POST"])
 def submit_complaint(post_id):
-    flash("Complaint submitted", "info")
-    return redirect(url_for("home"))
+    form = PostComplaintForm()
+
+    if form.validate_on_submit:
+        flash("Complaint submitted", "info")
+        return redirect(url_for("home"))
+
+    return render_template("complaint.html", form=form, post_id=post_id)
 
 
 @app.route("/admin", methods=["GET", "POST"])

@@ -46,6 +46,20 @@ class RegistrationForm(FlaskForm):
     )
     submit = SubmitField("Sign Up")
 
+    def validate_username(self, username):
+        user_data = User.users[User.users["username"] == username.data]
+        if not user_data.empty:
+            raise ValidationError(
+                "Username already exists. Please choose another or log in"
+            )
+
+    def validate_email(self, email):
+        user_data = User.users[User.users["email"] == email.data]
+        if not user_data.empty:
+            raise ValidationError(
+                "There is an account with that email. Please choose another or log in."
+            )
+
 
 class EditAccountForm(FlaskForm):
     username = StringField(
@@ -57,11 +71,36 @@ class EditAccountForm(FlaskForm):
         "Update Profile Picture", validators=[FileAllowed(["jpg", "png"])]
     )
     submit = SubmitField("Edit Account")
-    # TODO: Insert checks for username/email already used
+
+    def validate_username(self, username):
+        user_data = User.users[User.users["username"] == username.data]
+        if username.data != current_user.username:
+            if not user_data.empty:
+                raise ValidationError(
+                    "Username already exists. Please choose another or log in"
+                )
+
+    def validate_email(self, email):
+        user_data = User.users[User.users["email"] == email.data]
+        if email.data != current_user.email:
+            if not user_data.empty:
+                raise ValidationError(
+                    "There is an account with that email. Please choose another or log in."
+                )
 
 
 class UserPostForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
+    type = SelectField(
+        "Post Type",
+        choices=[
+            ("", "Select post type"),
+            ("ad", "Advertisement"),
+            ("job", "Job Posting"),
+            ("standard", "Standard Post"),
+        ],
+        validators=[DataRequired()],
+    )
     # multi-line input
     content = TextAreaField("Content", validators=[DataRequired(), Length(max=280)])
     media = FileField(
@@ -76,6 +115,18 @@ class UserPostForm(FlaskForm):
         print("Word Count: ", count)
         if count > 3:
             raise ValidationError("Only up to 3 keywords allowed")
+
+    def validate_type(self, type):
+        if current_user.user_role != "CU" and type.data != "standard":
+            raise ValidationError(
+                "Invalid type for role. Please choose standard or apply to be a Corporate User"
+            )
+
+
+class PostComplaintForm(FlaskForm):
+    Title = StringField("Summarize Complaint", validators=[Optional()])
+    content = StringField("Enter valid complaint", validators=[DataRequired()])
+    submit = SubmitField("Send Complaint")
 
 
 class RequestResetForm(FlaskForm):

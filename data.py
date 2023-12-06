@@ -17,7 +17,7 @@ from os import urandom
 
 
 class User(UserMixin):
-    def __init__(self, email, username, password, user_role, image_file, likes, posts):
+    def __init__(self, email, username, password, user_role, image_file, posts):
         self.id = email
         self.email = email
         self.username = username
@@ -144,22 +144,6 @@ class User(UserMixin):
     def is_authenticated(self):
         return True
 
-    # taboo moderation by SU
-    class TabooWords:
-        words = set([])
-
-        @classmethod
-        def add_words(cls, new_words):
-            cls.words.update(new_words)
-
-        # TODO: test, make more concise
-        @classmethod
-        def replace_taboo(cls, post):
-            for word in cls.words:
-                new_post = post.replace(word, "*" * len(word))
-
-            return new_post
-
     class Post:
         columns = [
             "title",
@@ -203,6 +187,7 @@ class User(UserMixin):
             self.likes = 0
             self.dislikes = 0
             self.type = "standard"
+            self.views = 0
             self.date_posted = datetime.utcnow()
             # keeps post_id from changing between updates
             if post_id is None:
@@ -228,6 +213,7 @@ class User(UserMixin):
             likes=0,
             dislikes=0,
             type="standard",
+            views=0,
             date_posted=datetime.utcnow(),
         ):
             cls.load_posts()
@@ -242,6 +228,7 @@ class User(UserMixin):
                         likes,
                         dislikes,
                         type,
+                        views,
                         date_posted.strftime("%m-%d-%Y"),
                         cls.post_id,
                     ]
@@ -320,40 +307,6 @@ class User(UserMixin):
 
             return post_index
 
-        # getters for seach parameters
-        # TODO: condense into one function, takes another parameter=attribute; input into return statement search
-        @classmethod
-        def getLikes(cls, post):
-            post_index = cls.findPost(post)
-            if post_index is not None:
-                return cls.posts.loc[post_index, "likes"]
-            else:
-                print("Post does not exist")
-
-        @classmethod
-        def getDislikes(cls, post):
-            post_index = cls.findPost(post)
-            if post_index is not None:
-                return cls.posts.loc[post_index, "dislikes"]
-            else:
-                print("Post does not exist")
-
-        @classmethod
-        def getkeywords(cls, post):
-            post_index = cls.findPost(post)
-            if post_index is not None:
-                return cls.posts.loc[post_index, "keywords"]
-            else:
-                print("Post does not exist")
-
-        @classmethod
-        def getAuthor(cls, post):
-            post_index = cls.findPost(post)
-            if post_index is not None:
-                return cls.posts.loc[post_index, "username"]
-            else:
-                print("Post does not exist")
-
         @classmethod
         def sresults(cls, attribute, sterm):
             cls.load_posts()
@@ -421,6 +374,19 @@ class User(UserMixin):
                 cls.posts.to_csv("posts.csv", index=False)
                 cls.dislikes.to_csv("dislikes.csv", index=False)
                 return 1
+
+        # method for updating views
+        # TODO: not updating
+        @classmethod
+        def add_view(cls, post):
+            post.views += 1
+            cls.posts.to_csv("posts.csv", index=False)
+
+        """
+        # method for displaying top posts
+        @classmethod
+        def trend_posts(cls):
+            cls.load_posts() """
 
 
 # User.Post.load_posts()

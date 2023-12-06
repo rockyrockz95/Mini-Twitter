@@ -24,6 +24,19 @@
                     {{ form.title(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+            <div class="form-group mb-2" >
+                {{ form.type.label(class="form-control-label") }}
+                {% if form.type.errors %}
+                    {{form.type(class="form-control form-control-lg is-invalid")}}
+                    <div class="invalid-feedback">
+                        {% for error in form.type.errors %}
+                           <span> {{error}} </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.type(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
             <div class="form-group mb-3">
                 {{ form.content.label(class="form-control-label") }}
                 {% if form.content.errors %}
