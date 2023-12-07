@@ -84,6 +84,8 @@ def user_loader(user_id):
     return user
 
 
+# inject users into layout.html without rendering explicitly
+# follows structure of Flask doc example
 @app.context_processor
 def inject_trending_posts():
     def trend_posts():
@@ -96,8 +98,6 @@ def inject_trending_posts():
     return dict(trending_posts=trend_posts)
 
 
-# inject users into layout.html without rendering explicitly
-# follows structure of Flask doc example
 @app.context_processor
 def inject_trending_users():
     def trend_users():
@@ -117,12 +117,23 @@ def inject_trending_users():
 
 
 # must check user authentication to run, logged in -> OU, CU, TU
-# @app.context_processor
-# def inject_suggested_users():
-#     def suggest_users():
-#         User.Post.load_posts()
-#         like_history = User.Post.likes
-#         suggested_accounts =
+# if user liked 2 of the previous user's accounts -> suggest
+# flawed implementation
+@app.context_processor
+def inject_suggested_users():
+    def suggest_accounts():
+        User.load_users()
+        User.Post.load_posts()
+        User.Post.likes = pd.read_csv("likes.csv")
+
+        liked_posts = User.Post.likes[User.Post.likes["username"] == current_user]
+        liked_counts = liked_posts["username"].value_counts()
+
+        suggested_accounts = liked_counts[liked_counts >= 2].index.tolist()
+
+        return suggested_accounts
+
+    return dict(suggested_accounts=suggest_accounts)
 
 
 @app.route("/")
