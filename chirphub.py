@@ -20,7 +20,7 @@ from forms import (
     AdminRemoveUserForm,
     AdminRemovePostForm,
     PostComplaintForm,
-    AdminTabooWordForm
+    AdminTabooWordForm,
 )
 from data import User
 from datetime import datetime
@@ -83,17 +83,17 @@ def user_loader(user_id):
 
 # inject users into layout.html without rendering explicitly
 # follows structure of Flask doc example
-# @app.context_processor
-# def inject_trending_posts():
-#     def trend_posts():
-#         User.Post.load_posts()
-#         # results sorted by views
-#         most_viewed = User.Post.posts[User.Post.posts["views"] > 10]
-#         trendy_posts = most_viewed[(most_viewed["likes"] - most_viewed["dislikes"]) > 3]
-#         top3 = trendy_posts.iloc[:3]
-#         return top3
+@app.context_processor
+def inject_trending_posts():
+    def trend_posts():
+        User.Post.load_posts()
+        # results sorted by views
+        most_viewed = User.Post.posts[User.Post.posts["views"] > 10]
+        trendy_posts = most_viewed[(most_viewed["likes"] - most_viewed["dislikes"]) > 3]
+        top3 = trendy_posts.iloc[:3]
+        return top3
 
-#     return dict(trending_posts=trend_posts)
+    return dict(trending_posts=trend_posts)
 
 
 @app.route("/")
@@ -298,13 +298,14 @@ def single_post(post_id):
     post_id = int(float(post_id))
     posts = User.Post.posts
     ppost, user = User.Post.postUserPair(post_id)  # Get post and user
-    censored_content = User.Post.censor_taboo_words(
-        ppost.content)  # Use ppost here
+    censored_content = User.Post.censor_taboo_words(ppost.content)  # Use ppost here
 
     User.Post.add_view(ppost)  # Use ppost here
 
     # Use ppost here
-    return render_template("single_post.html", posts=posts, user=user, post=ppost, content=censored_content)
+    return render_template(
+        "single_post.html", posts=posts, user=user, post=ppost, content=censored_content
+    )
 
 
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
@@ -415,8 +416,7 @@ def dislike_post(post_id):
 def submit_complaint(post_id):
     form = PostComplaintForm()
     if form.validate_on_submit():
-        User.Post.createComplaint(
-            current_user.username, post_id, form.content.data)
+        User.Post.createComplaint(current_user.username, post_id, form.content.data)
         flash("Complaint submitted", "info")
         return redirect(url_for("home"))
 
@@ -470,7 +470,7 @@ def admin():
         remove_post_form=remove_post_form,
         taboo_word_form=taboo_word_form,
         complaints=complaints,
-        taboo_words=taboo_words
+        taboo_words=taboo_words,
     )
 
 
@@ -509,26 +509,28 @@ def manage_taboo_words():
         User.Post.remove_taboo_word(form.word.data)
         flash("Word removed from taboo list", "success")
 
-    return redirect(url_for('admin'))
+    return redirect(url_for("admin"))
 
 
 @app.route("/profile/<username>")
 def profile(username):
     if current_user.is_authenticated:
         # Fetch user's posts from the DataFrame
-        posts = User.Post.posts[User.Post.posts['username']
-                                == username].to_dict('records')
+        posts = User.Post.posts[User.Post.posts["username"] == username].to_dict(
+            "records"
+        )
 
         # Fetch user data
-        user_data = User.users[User.users['username']
-                               == username].iloc[0].to_dict()
+        user_data = User.users[User.users["username"] == username].iloc[0].to_dict()
     else:
         flash("Must be logged in to view your profile", "warning")
         # You might want to redirect to the login page instead
         return redirect(url_for("login"))
 
     # Pass both posts and user data to the template
-    return render_template("profile.html", username=username, posts=posts, user_data=user_data)
+    return render_template(
+        "profile.html", username=username, posts=posts, user_data=user_data
+    )
 
 
 if __name__ == "__main__":
