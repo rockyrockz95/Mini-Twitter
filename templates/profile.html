@@ -23,7 +23,9 @@
                 <a class="btn btn-secondary btn-sm mt-1 mb-1"
                     href="{{ url_for('update_post', post_id=post.post_id) }}">Update</a>
                 <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal"
-                    data-bs-target="#deleteModal">Delete Post</button>
+                    data-bs-target="#deleteModal">
+                    Delete Post
+                </button>
                 {% endif %}
             </div>
             <h2 class="article-title"><a href="{{ url_for('single_post', post_id=post.post_id) }}">{{ post.title }}</a>
