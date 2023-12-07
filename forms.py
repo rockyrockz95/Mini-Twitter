@@ -21,8 +21,9 @@ from wtforms.validators import (
 from collections import Counter
 from data import User
 
-
 # creating each form as a class, possible using wtforms package
+
+
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
@@ -102,7 +103,8 @@ class UserPostForm(FlaskForm):
         validators=[DataRequired()],
     )
     # multi-line input
-    content = TextAreaField("Content", validators=[DataRequired(), Length(max=280)])
+    content = TextAreaField("Content", validators=[
+                            DataRequired(), Length(max=280)])
     media = FileField(
         "Add Picture", validators=[FileAllowed(["jpg", "png", "gif", "mp4"])]
     )
@@ -124,9 +126,8 @@ class UserPostForm(FlaskForm):
 
 
 class PostComplaintForm(FlaskForm):
-    Title = StringField("Summarize Complaint", validators=[Optional()])
-    content = StringField("Enter valid complaint", validators=[DataRequired()])
-    submit = SubmitField("Send Complaint")
+    content = TextAreaField("Complaint Content", validators=[DataRequired()])
+    submit = SubmitField("Submit Complaint")
 
 
 class RequestResetForm(FlaskForm):
@@ -150,31 +151,37 @@ class ResetPasswordForm(FlaskForm):
 
 
 class AdminCreateUserForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    username = StringField("Username", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
     role = SelectField(
-        "Role",
+        'Role',
         choices=[
-            ("", "Select a role"),
-            ("SU", "Super User"),
-            ("TU", "Trendy User"),
-            ("OU", "Ordinary User"),
-            ("CU", "Corporate User"),
+            ('', 'Select a role'),
+            ('SU', 'Super User'),
+            ('TU', 'Trendy User'),
+            ('OU', 'Ordinary User'),
+            ('CU', 'Corporate User')
         ],
-        validators=[DataRequired()],
+        validators=[DataRequired()]
     )
-    submit = SubmitField("Create User")
+    submit = SubmitField('Create User')
 
 
 class AdminRemoveUserForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    submit = SubmitField("Remove User")
+    username = StringField('Username', validators=[DataRequired()])
+    submit = SubmitField('Remove User')
 
 
 class AdminRemovePostForm(FlaskForm):
-    post_id = StringField("Post ID", validators=[DataRequired()])
-    submit = SubmitField("Remove Post")
+    post_id = StringField('Post ID', validators=[DataRequired()])
+    submit = SubmitField('Remove Post')
+
+
+class AdminTabooWordForm(FlaskForm):
+    word = StringField('Word', validators=[DataRequired(), Length(min=1, max=50)])
+    submit_add = SubmitField('Add Word')
+    submit_remove = SubmitField('Remove Word')
 
 
 # Sources:

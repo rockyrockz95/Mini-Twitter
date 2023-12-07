@@ -2,55 +2,57 @@
 <!-- for displaying a single post-->
 {% extends "layout.html" %}
 {% block content %}
-  <article class="media content-section">
-    <img class="rounded-circle article-img" src="{{ url_for('static', filename=user.image_file) }}">
-    <div class="media-body">
-      <div class="article-metadata">
-        <!--post-id == index -->
-        <a class="mr-2" href="#">{{ post.username}}</a>
-        <small class="text-muted">{{ post.date_posted }}</small>
+<article class="media content-section">
+  <img class="rounded-circle article-img" src="{{ url_for('static', filename=user.image_file) }}">
+  <div class="media-body">
+    <div class="article-metadata">
+      <!--post-id == index -->
+      <a class="mr-2" href="{{ url_for('profile', username=post.username) }}">{{ post.username }}</a>
+      <small class="text-muted">{{ post.date_posted }}</small>
 
-        {% if post.username == current_user.username %}
-          <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('update_post', post_id=post.post_id) }}">Update</a>   
-          <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">
-            Delete Post
-          </button>
-        {% endif %}
+      {% if post.username == current_user.username %}
+      <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('update_post', post_id=post.post_id) }}">Update</a>
+      <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        Delete Post
+      </button>
+      {% endif %}
+    </div>
+    <!-- Identical in home and single_post, TODO: try to combine in layout -->
+    <h2 class="article-title">{{ post.title }}</h2>
+    {% if user.user_role == "CU" %}
+    <small class="text-muted"> This is a: {{post.type}} </small>
+    {% endif %}
+    <p class="article-content">{{ post.content }}</p>
+    <!-- Key words should have some special indicator -->
+    <p class="article-content">{{ post.keywords }}</p>
+    <a class="btn btn-success btn-sm" href="{{url_for('like_post', post_id=post.post_id)}}" role="button">Like</a>
+    <small class="text-muted">{{ post.likes }}</small>
+    <a class="btn btn-danger btn-sm" href="{{url_for('dislike_post', post_id=post.post_id)}}" role="button">Dislike</a>
+    <small class="text-muted">{{ post.dislikes }}</small>
+    <a class="btn btn-warning btn-sm m-2" href="{{ url_for('submit_complaint', post_id=post.post_id) }}"
+      role="button">Complain</a>
+  </div>
+</article>
+<!-- Modal: TAKEN DIRECTLY FROM BOOTSTRAP (LIVE DEMO): pop-up window to make sure user wants to delete -->
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-        <!-- Identical in home and single_post, TODO: try to combine in layout -->
-        <h2 class="article-title">{{ post.title }}</h2>
-        {% if user.user_role == "CU" %}
-           <small class="text-muted"> This is a: {{post.type}} </small>
-        {% endif %}
-        <p class="article-content">{{ post.content }}</p>
-        <!-- Key words should have some special indicator -->
-        <p class="article-content">{{ post.keywords }}</p>
-        <a class="btn btn-success btn-sm" href="{{url_for('like_post', post_id=post.post_id)}}" role="button">Like</a>
-        <small class="text-muted">{{ post.likes }}</small>
-        <a class="btn btn-danger btn-sm" href="{{url_for('dislike_post', post_id=post.post_id)}}" role="button">Dislike</a>
-        <small class="text-muted">{{ post.dislikes }}</small>
-        <a class="btn btn-warning btn-sm m-2" href="{{url_for('submit_complaint', post_id=post.post_id)}}" role="button">Complain</a>
-      </div>
-  </article>
-  <!-- Modal: TAKEN DIRECTLY FROM BOOTSTRAP (LIVE DEMO): pop-up window to make sure user wants to delete -->
-  
-  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
-          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-    
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <form action="{{ url_for('delete_post', post_id=post.post_id) }}" method="POST">
-            <input class="btn btn-danger" type="submit" value="Delete">
-          </form>
-        </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <form action="{{ url_for('delete_post', post_id=post.post_id) }}" method="POST">
+          <input class="btn btn-danger" type="submit" value="Delete">
+        </form>
       </div>
     </div>
   </div>
+</div>
 {% endblock content %}

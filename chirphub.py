@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from flask import Flask, render_template, flash, url_for, redirect, request, abort
 from flask_login import (
     LoginManager,
@@ -11,7 +12,7 @@ from flask_bcrypt import Bcrypt
 from forms import (
     RegistrationForm,
     LoginForm,
-    EditAccountForm,
+    EditAccountForm,  # YAAAAAA BABYYY
     UserPostForm,
     RequestResetForm,
     ResetPasswordForm,
@@ -19,6 +20,7 @@ from forms import (
     AdminRemoveUserForm,
     AdminRemovePostForm,
     PostComplaintForm,
+    AdminTabooWordForm
 )
 from data import User
 from datetime import datetime
@@ -111,7 +113,8 @@ def login():
 
     form = LoginForm()  # instance of
     print("Form data - Username:", form.username.data)
-    print("Form data - Password:", form.password.data)  # authetification issue test
+    # authetification issue test
+    print("Form data - Password:", form.password.data)
     if form.validate_on_submit():
         # return row of matching username
         # returns an error if incorrect username entered. oops
@@ -275,12 +278,14 @@ def single_post(post_id):
     # urandom format requires float --> int
     post_id = int(float(post_id))
     posts = User.Post.posts
-    post, user = User.Post.postUserPair(post_id)
-    # every click the post should get a view added
-    # TODO: check
-    User.Post.add_view(post)
+    ppost, user = User.Post.postUserPair(post_id)  # Get post and user
+    censored_content = User.Post.censor_taboo_words(
+        ppost.content)  # Use ppost here
 
-    return render_template("single_post.html", posts=posts, user=user, post=post)
+    User.Post.add_view(ppost)  # Use ppost here
+
+    # Use ppost here
+    return render_template("single_post.html", posts=posts, user=user, post=ppost, content=censored_content)
 
 
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
@@ -390,8 +395,9 @@ def dislike_post(post_id):
 @app.route("/complaint/<post_id>", methods=["GET", "POST"])
 def submit_complaint(post_id):
     form = PostComplaintForm()
-
-    if form.validate_on_submit:
+    if form.validate_on_submit():
+        User.Post.createComplaint(
+            current_user.username, post_id, form.content.data)
         flash("Complaint submitted", "info")
         return redirect(url_for("home"))
 
@@ -407,6 +413,7 @@ def admin():
     create_user_form = AdminCreateUserForm()
     remove_user_form = AdminRemoveUserForm()
     remove_post_form = AdminRemovePostForm()
+    taboo_word_form = AdminTabooWordForm()
 
     if request.method == "POST":
         action = request.form.get("action")
@@ -434,12 +441,75 @@ def admin():
             flash("Post removed!", "success")
             return redirect(url_for("admin"))
 
+    taboo_words = pd.read_csv("taboo_word_list.csv")["banned_words"].tolist()
+    complaints = User.Post.complaints
+
     return render_template(
         "admin.html",
         create_user_form=create_user_form,
         remove_user_form=remove_user_form,
         remove_post_form=remove_post_form,
+        taboo_word_form=taboo_word_form,
+        complaints=complaints,
+        taboo_words=taboo_words
     )
+
+
+@app.route("/add_taboo_word", methods=["POST"])
+@login_required
+def add_taboo_word():
+    if current_user.user_role != "SU":
+        abort(403)
+    word = request.form.get("word")
+    if word:
+        User.Post.add_taboo_word(word)
+        flash("Word added to taboo list", "success")
+    return redirect(url_for("admin"))
+
+
+@app.route("/remove_taboo_word", methods=["POST"])
+@login_required
+def remove_taboo_word():
+    if current_user.user_role != "SU":
+        abort(403)
+    word = request.form.get("word")
+    if word:
+        User.Post.remove_taboo_word(word)
+        flash("Word removed from taboo list", "info")
+    return redirect(url_for("admin"))
+
+
+@app.route("/manage_taboo_words", methods=["POST"])
+@login_required
+def manage_taboo_words():
+    form = AdminTabooWordForm()
+    if form.submit_add.data and form.validate_on_submit():
+        User.Post.add_taboo_word(form.word.data)
+        flash("Word added to taboo list", "success")
+    elif form.submit_remove.data and form.validate_on_submit():
+        User.Post.remove_taboo_word(form.word.data)
+        flash("Word removed from taboo list", "success")
+
+    return redirect(url_for('admin'))
+
+
+@app.route("/profile/<username>")
+def profile(username):
+    if current_user.is_authenticated:
+        # Fetch user's posts from the DataFrame
+        posts = User.Post.posts[User.Post.posts['username']
+                                == username].to_dict('records')
+
+        # Fetch user data
+        user_data = User.users[User.users['username']
+                               == username].iloc[0].to_dict()
+    else:
+        flash("Must be logged in to view your profile", "warning")
+        # You might want to redirect to the login page instead
+        return redirect(url_for("login"))
+
+    # Pass both posts and user data to the template
+    return render_template("profile.html", username=username, posts=posts, user_data=user_data)
 
 
 if __name__ == "__main__":
