@@ -21,7 +21,7 @@ from forms import (
     AdminRemovePostForm,
     PostComplaintForm,
     AdminTabooWordForm,
-    AdminCreatePostForm
+    AdminCreatePostForm,
 )
 from data import User
 from datetime import datetime
@@ -82,6 +82,18 @@ def user_loader(user_id):
     )
 
     return user
+
+
+@app.context_processor
+def inject_trending_posts():
+    def trend_posts():
+        User.Post.load_posts()
+        most_viewed = User.Post.posts[User.Post.posts["views"] > 10]
+        trendy_posts = most_viewed[(most_viewed["likes"] - most_viewed["dislikes"]) > 3]
+        top3 = trendy_posts.iloc[:3]
+        return top3
+
+    return dict(trending_posts=trend_posts)
 
 
 # inject users into layout.html without rendering explicitly
@@ -313,8 +325,7 @@ def single_post(post_id):
     post_id = int(float(post_id))
     posts = User.Post.posts
     ppost, user = User.Post.postUserPair(post_id)  # Get post and user
-    censored_content = User.Post.censor_taboo_words(
-        ppost.content)  # Use ppost here
+    censored_content = User.Post.censor_taboo_words(ppost.content)  # Use ppost here
 
     User.Post.add_view(ppost)  # Use ppost here
 
@@ -437,8 +448,7 @@ def dislike_post(post_id):
 def submit_complaint(post_id):
     form = PostComplaintForm()
     if form.validate_on_submit():
-        User.Post.createComplaint(
-            current_user.username, post_id, form.content.data)
+        User.Post.createComplaint(current_user.username, post_id, form.content.data)
         flash("Complaint submitted", "info")
         return redirect(url_for("home"))
 
@@ -485,8 +495,8 @@ def admin():
     taboo_words = pd.read_csv("taboo_word_list.csv")["banned_words"].tolist()
     complaints = User.Post.complaints
     create_post_form = AdminCreatePostForm()
-    users = User.users.to_dict(orient='records')
-    posts = User.Post.posts.to_dict(orient='records')
+    users = User.users.to_dict(orient="records")
+    posts = User.Post.posts.to_dict(orient="records")
 
     return render_template(
         "admin.html",
@@ -498,7 +508,7 @@ def admin():
         complaints=complaints,
         taboo_words=taboo_words,
         users=users,
-        posts=posts
+        posts=posts,
     )
 
 
@@ -549,8 +559,7 @@ def profile(username):
         )
 
         # Fetch user data
-        user_data = User.users[User.users["username"]
-                               == username].iloc[0].to_dict()
+        user_data = User.users[User.users["username"] == username].iloc[0].to_dict()
     else:
         flash("Must be logged in to view your profile", "warning")
         # You might want to redirect to the login page instead
@@ -586,13 +595,16 @@ def admin_create_post_for_user():
         flash("Post created on behalf of " + form.username.data, "success")
         return redirect(url_for("admin"))
 
-    return render_template("admin_create_post.html", title="Create Post for User", form=form)
+    return render_template(
+        "admin_create_post.html", title="Create Post for User", form=form
+    )
 
 
 @app.route("/payment")
 @login_required
 def payment():
-    return render_template('payment.html')
+    return render_template("payment.html")
+
 
 @app.route("/add_warning_to_user", methods=["POST"])
 @login_required
