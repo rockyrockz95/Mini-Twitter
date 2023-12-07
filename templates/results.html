@@ -9,7 +9,7 @@
   <div class="media-body">
     <div class="article-metadata">
       <!--Print out entire username only-->
-      <a class="mr-2" href="#">{{ post.username }}</a>
+      <a class="mr-2" href="{{ url_for('profile', username=post.username) }}">{{ post.username }}</a>
       <!-- Its a datetime method, so we can use str methods-->
       <!-- want to only display the date-->
       <!-- search up codes for datetime stuff-->
