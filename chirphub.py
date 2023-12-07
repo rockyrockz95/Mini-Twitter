@@ -81,13 +81,32 @@ def user_loader(user_id):
     return user
 
 
+# inject users into layout.html without rendering explicitly
+# follows structure of Flask doc example
+# @app.context_processor
+# def inject_trending_posts():
+#     def trend_posts():
+#         User.Post.load_posts()
+#         # results sorted by views
+#         most_viewed = User.Post.posts[User.Post.posts["views"] > 10]
+#         trendy_posts = most_viewed[(most_viewed["likes"] - most_viewed["dislikes"]) > 3]
+#         top3 = trendy_posts.iloc[:3]
+#         return top3
+
+#     return dict(trending_posts=trend_posts)
+
+
 @app.route("/")
 @app.route("/home")
 def home():
     # need access to both to show the user and post attributes
     users = User.users
     posts = User.Post.posts
-    return render_template("home.html", posts=posts, users=users)
+    trending_posts = User.Post.trend_posts()
+
+    return render_template(
+        "home.html", posts=posts, users=users, trendy_posts=trending_posts
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -518,4 +537,5 @@ if __name__ == "__main__":
 # TODO: Add sources for image file and os functions
 """ Sources:
       - Flask introduction - Corey Schafer: https://youtube.com/playlist?list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH&si=1SMoPOktWJfeVH8p
-      - Request Object/Search route: https://www.geeksforgeeks.org/python-flask-request-object/ """
+      - Request Object/Search route: https://www.geeksforgeeks.org/python-flask-request-object/ 
+      - Context Processor (trending functions -> layout): https://flask.palletsprojects.com/en/2.3.x/templating/ """

@@ -101,11 +101,9 @@ class User(UserMixin):
         # find the index of the user with an existing email
         # have to use email as search parameter if username is being changes, vice-versa
         if not cls.users[cls.users["username"] == curr_user.username].empty:
-            user_index = cls.users[cls.users["username"]
-                                   == curr_user.username].index[0]
+            user_index = cls.users[cls.users["username"] == curr_user.username].index[0]
         elif not cls.users[cls.users["email"] == curr_user.email].empty:
-            user_index = cls.users[cls.users["email"]
-                                   == curr_user.email].index[0]
+            user_index = cls.users[cls.users["email"] == curr_user.email].index[0]
         # not condition: iloc returns IndexError for empty dataFrame
 
         # update the user parameter in the databases
@@ -158,6 +156,7 @@ class User(UserMixin):
             "dislikes",
             # TODO: make a choice, ad or standard --> account balance monitor; Make setter
             "type",
+            "views",
             "date_posted",
             "post_id",
         ]
@@ -243,6 +242,7 @@ class User(UserMixin):
 
             print("Current posts: ", cls.posts)
 
+        # primarily for user initiated updates
         @classmethod
         def updatePost(cls, post):
             # check
@@ -262,11 +262,11 @@ class User(UserMixin):
         def deletePost(cls, post):
             post_index = cls.findPost(post)
             if post_index is not None:
-                post_id = cls.posts.loc[post_index, 'post_id']
+                post_id = cls.posts.loc[post_index, "post_id"]
                 # Remove associated complaints, likes, and dislikes
-                cls.complaints = cls.complaints[cls.complaints['post_id'] != post_id]
-                cls.likes = cls.likes[cls.likes['post_id'] != post_id]
-                cls.dislikes = cls.dislikes[cls.dislikes['post_id'] != post_id]
+                cls.complaints = cls.complaints[cls.complaints["post_id"] != post_id]
+                cls.likes = cls.likes[cls.likes["post_id"] != post_id]
+                cls.dislikes = cls.dislikes[cls.dislikes["post_id"] != post_id]
                 # Delete the post
                 cls.posts.drop(index=post_index, inplace=True)
                 cls.posts.to_csv("posts.csv", index=False)
@@ -276,7 +276,6 @@ class User(UserMixin):
                 cls.complaints.to_csv("complaints.csv", index=False)
             else:
                 print("Post does not exist")
-
 
         @classmethod
         def deletePostById(cls, post_id):  # Function solely meant for Super Users
@@ -316,8 +315,7 @@ class User(UserMixin):
 
             # find the index of the post with an existing post_id
             if not cls.posts[cls.posts["post_id"] == post.post_id].empty:
-                post_index = cls.posts[cls.posts["post_id"]
-                                       == post.post_id].index[0]
+                post_index = cls.posts[cls.posts["post_id"] == post.post_id].index[0]
 
             return post_index
 
@@ -326,8 +324,7 @@ class User(UserMixin):
             cls.load_posts()
             if attribute == "username" or attribute == "keywords":
                 # results not case-sensitive
-                post = cls.posts[cls.posts[attribute].str.lower()
-                                 == sterm.lower()]
+                post = cls.posts[cls.posts[attribute].str.lower() == sterm.lower()]
 
             elif attribute == "likes" or attribute == "dislikes":
                 # Only numeric values allowed
@@ -352,8 +349,7 @@ class User(UserMixin):
                 (cls.likes["username"] == curr_username)
                 & (cls.likes["post_id"] == post_id)
             ]
-            new_row = pd.DataFrame(
-                {"post_id": [post_id], "username": [curr_username]})
+            new_row = pd.DataFrame({"post_id": [post_id], "username": [curr_username]})
 
             if not like_row.empty:
                 print("Already liked post")
@@ -367,7 +363,7 @@ class User(UserMixin):
                 cls.likes.to_csv("likes.csv", index=False)
                 return 1
 
-        # TU: likes = dislikes
+        # TU: likes - dislikes
         @classmethod
         def add_dislike(cls, post_id, curr_username):
             post = cls.postUserPair(post_id)[0]
@@ -377,16 +373,14 @@ class User(UserMixin):
                 (cls.dislikes["username"] == curr_username)
                 & (cls.dislikes["post_id"] == post_id)
             ]
-            new_row = pd.DataFrame(
-                {"post_id": [post_id], "username": [curr_username]})
+            new_row = pd.DataFrame({"post_id": [post_id], "username": [curr_username]})
 
             if not dislike_row.empty:
                 print("Already liked post")
                 return 0
             else:
                 cls.posts.loc[post_index, "dislikes"] += 1
-                cls.dislikes = pd.concat(
-                    [cls.dislikes, new_row], ignore_index=True)
+                cls.dislikes = pd.concat([cls.dislikes, new_row], ignore_index=True)
 
                 # save like data
                 cls.posts.to_csv("posts.csv", index=False)
@@ -397,21 +391,23 @@ class User(UserMixin):
         # TODO: not updating
         @classmethod
         def add_view(cls, post):
-            post.views += 1
+            post_index = cls.findPost(post)
+            cls.posts.loc[post_index, "views"] += 1
             cls.posts.to_csv("posts.csv", index=False)
 
         @classmethod
         def createComplaint(cls, post_id, username, content):
-            cls.load_posts() 
+            cls.load_posts()
             new_complaint = pd.DataFrame(
-                [[post_id, username, content]],
-                columns=cls.complaint_cols
+                [[post_id, username, content]], columns=cls.complaint_cols
             )
-            cls.complaints = pd.concat([cls.complaints, new_complaint], ignore_index=True)
+            cls.complaints = pd.concat(
+                [cls.complaints, new_complaint], ignore_index=True
+            )
             cls.complaints.to_csv("complaints.csv", index=False)
 
             print("Current complaints: ", cls.complaints)
-        
+
         @classmethod
         def load_taboo_words(cls):
             try:
@@ -432,28 +428,39 @@ class User(UserMixin):
             taboo_words = pd.read_csv("taboo_word_list.csv")
             taboo_words = taboo_words[taboo_words["banned_words"] != word]
             taboo_words.to_csv("taboo_word_list.csv", index=False)
-        
+
         @classmethod
         def censor_taboo_words(cls, text):
             taboo_words = cls.load_taboo_words()
             for word in taboo_words:
                 pattern = re.compile(re.escape(word), re.IGNORECASE)
-                text = pattern.sub('*' * len(word), text)
+                text = pattern.sub("*" * len(word), text)
             return text
+
         """
         # method for displaying top posts
+            # criteria: post has > 10 views && #likes - # dislikes > 3
+            # strategy: find the 3 posts with > 10 views (assume they exist)
+                        determine if #likes - #dislikes > 3
+                        sort last for display
+                        return those to home.html """
+
         @classmethod
         def trend_posts(cls):
-            cls.load_posts() """
+            cls.load_posts()
+            # results sorted by views
+            most_viewed = cls.posts[cls.posts["views"] > 10]
+            trendy_posts = most_viewed[
+                (most_viewed["likes"] - most_viewed["dislikes"]) > 3
+            ]
+            top3 = trendy_posts.iloc[:3]
+            return top3
 
 
+User.Post.trend_posts()
 # User.Post.load_posts()
 # for index, post in User.Post.posts.iterrows():
 #     print(post)
-
-""" TODO: User classification: Differentiate SUs, from CUs, OUs, and Surfers
-    - Inner class?
-    - Another cloumn? """
 
 
 # https://stackoverflow.com/questions/30829748/multiple-pandas-dataframe-to-one-csv-file : multiple dataFrames vertically
@@ -461,7 +468,7 @@ class User(UserMixin):
 """ TODO: Add balance maintenance
       # Every user starts with the same balance?
       # How do users add more? 
-          - Account settings?"""
+          - Account settings? """
 
 """ Sources: 
 #   https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
