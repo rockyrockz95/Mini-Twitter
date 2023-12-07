@@ -96,6 +96,33 @@ def inject_trending_posts():
     return dict(trending_posts=trend_posts)
 
 
+@app.context_processor
+def inject_trending_users():
+    def trend_users():
+        User.load_users()
+        User.Post.load_posts()
+        post_likes = pd.to_numeric(User.Post.posts["likes"])
+        post_dislikes = pd.to_numeric(User.Post.posts["dislikes"])
+
+        liked_posts = User.Post.posts[(post_likes - post_dislikes) > 10]
+
+        user_like_counts = liked_posts["username"].value_counts()
+        trending_users = user_like_counts[user_like_counts >= 2].index.tolist()
+
+        return trending_users
+
+    return dict(trending_users=trend_users)
+
+
+# must check user authentication to run, logged in -> OU, CU, TU
+# @app.context_processor
+# def inject_suggested_users():
+#     def suggest_users():
+#         User.Post.load_posts()
+#         like_history = User.Post.likes
+#         suggested_accounts =
+
+
 @app.route("/")
 @app.route("/home")
 def home():

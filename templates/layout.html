@@ -97,6 +97,11 @@
             </li>
           {% endfor %}
           <li class="list-group-item list-group-item-light">Trending Users</li>
+          {% for name in trending_users() %}
+           <li class="list-group-item list-group-item-light"> 
+            <a href="{{ url_for('profile', username=name) }}"> {{name}} </a>
+          </li>
+          {% endfor %}
         </ul>
       </div>
     </div>
