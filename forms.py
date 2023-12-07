@@ -173,13 +173,35 @@ class AdminRemoveUserForm(FlaskForm):
     submit = SubmitField('Remove User')
 
 
+class AdminCreatePostForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    title = StringField("Title", validators=[DataRequired()])
+    type = SelectField(
+        "Post Type",
+        choices=[
+            ("", "Select post type"),
+            ("ad", "Advertisement"),
+            ("job", "Job Posting"),
+            ("standard", "Standard Post"),
+        ],
+        validators=[DataRequired()],
+    )
+    content = TextAreaField("Content", validators=[
+                            DataRequired(), Length(max=280)])
+    media = FileField("Add Picture", validators=[
+                      FileAllowed(["jpg", "png", "gif", "mp4"])])
+    keywords = StringField("Key Words", validators=[Optional()])
+    submit = SubmitField("Create Post")
+
+
 class AdminRemovePostForm(FlaskForm):
     post_id = StringField('Post ID', validators=[DataRequired()])
     submit = SubmitField('Remove Post')
 
 
 class AdminTabooWordForm(FlaskForm):
-    word = StringField('Word', validators=[DataRequired(), Length(min=1, max=50)])
+    word = StringField('Word', validators=[
+                       DataRequired(), Length(min=1, max=50)])
     submit_add = SubmitField('Add Word')
     submit_remove = SubmitField('Remove Word')
 

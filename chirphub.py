@@ -12,7 +12,7 @@ from flask_bcrypt import Bcrypt
 from forms import (
     RegistrationForm,
     LoginForm,
-    EditAccountForm,  # YAAAAAA BABYYY
+    EditAccountForm,
     UserPostForm,
     RequestResetForm,
     ResetPasswordForm,
@@ -21,6 +21,7 @@ from forms import (
     AdminRemovePostForm,
     PostComplaintForm,
     AdminTabooWordForm,
+    AdminCreatePostForm
 )
 from data import User
 from datetime import datetime
@@ -74,6 +75,8 @@ def user_loader(user_id):
         username=user_data["username"],
         password=user_data["password"],
         user_role=user_data["user_role"],
+        balance=user_data.get("balance", 100),
+        warnings=user_data.get("warnings", 0),
         image_file=user_data["image_file"],
         posts=user_data["posts"],
     )
@@ -83,19 +86,6 @@ def user_loader(user_id):
 
 # inject users into layout.html without rendering explicitly
 # follows structure of Flask doc example
-@app.context_processor
-def inject_trending_posts():
-    def trend_posts():
-        User.Post.load_posts()
-        # results sorted by views
-        most_viewed = User.Post.posts[User.Post.posts["views"] > 10]
-        trendy_posts = most_viewed[(most_viewed["likes"] - most_viewed["dislikes"]) > 3]
-        top3 = trendy_posts.iloc[:3]
-        return top3
-
-    return dict(trending_posts=trend_posts)
-
-
 @app.context_processor
 def inject_trending_users():
     def trend_users():
@@ -129,7 +119,6 @@ def home():
     # need access to both to show the user and post attributes
     users = User.users
     posts = User.Post.posts
-
     return render_template("home.html", posts=posts, users=users)
 
 
@@ -148,8 +137,7 @@ def register():
 
 
 # passing in GET and POST methods allows us to submit data via the page
-
-
+# TODO: Visual feedback for incorrectly logging in
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -171,6 +159,8 @@ def login():
                     username=user["username"],
                     password=user["password"],
                     user_role=user["user_role"],
+                    balance=user["balance"],
+                    warnings=user["warnings"],
                     image_file=user["image_file"],
                     posts=user["posts"],
                 )
@@ -323,7 +313,8 @@ def single_post(post_id):
     post_id = int(float(post_id))
     posts = User.Post.posts
     ppost, user = User.Post.postUserPair(post_id)  # Get post and user
-    censored_content = User.Post.censor_taboo_words(ppost.content)  # Use ppost here
+    censored_content = User.Post.censor_taboo_words(
+        ppost.content)  # Use ppost here
 
     User.Post.add_view(ppost)  # Use ppost here
 
@@ -410,6 +401,7 @@ def search():
     return redirect(url_for("home"))
 
 
+# TODO: If time, combine
 @app.route("/like/<post_id>")
 def like_post(post_id):
     post_id = int(float(post_id))
@@ -443,10 +435,10 @@ def dislike_post(post_id):
 # TODO: Add complaint form, finish implementation
 @app.route("/complaint/<post_id>", methods=["GET", "POST"])
 def submit_complaint(post_id):
-    post_id = int(float(post_id))
     form = PostComplaintForm()
     if form.validate_on_submit():
-        User.Post.createComplaint(current_user.username, post_id, form.content.data)
+        User.Post.createComplaint(
+            current_user.username, post_id, form.content.data)
         flash("Complaint submitted", "info")
         return redirect(url_for("home"))
 
@@ -492,15 +484,21 @@ def admin():
 
     taboo_words = pd.read_csv("taboo_word_list.csv")["banned_words"].tolist()
     complaints = User.Post.complaints
+    create_post_form = AdminCreatePostForm()
+    users = User.users.to_dict(orient='records')
+    posts = User.Post.posts.to_dict(orient='records')
 
     return render_template(
         "admin.html",
         create_user_form=create_user_form,
         remove_user_form=remove_user_form,
+        create_post_form=create_post_form,
         remove_post_form=remove_post_form,
         taboo_word_form=taboo_word_form,
         complaints=complaints,
         taboo_words=taboo_words,
+        users=users,
+        posts=posts
     )
 
 
@@ -551,7 +549,8 @@ def profile(username):
         )
 
         # Fetch user data
-        user_data = User.users[User.users["username"] == username].iloc[0].to_dict()
+        user_data = User.users[User.users["username"]
+                               == username].iloc[0].to_dict()
     else:
         flash("Must be logged in to view your profile", "warning")
         # You might want to redirect to the login page instead
@@ -561,6 +560,49 @@ def profile(username):
     return render_template(
         "profile.html", username=username, posts=posts, user_data=user_data
     )
+
+
+@app.route("/admin_create_post_for_user", methods=["GET", "POST"])
+@login_required
+def admin_create_post_for_user():
+    if current_user.user_role != "SU":
+        abort(403)  # Only allow Super Users
+
+    form = AdminCreatePostForm()
+    if form.validate_on_submit():
+        if form.media.data:
+            media_file = picture_path(form.media.data, "static/post_media")
+        else:
+            media_file = ""
+
+        User.Post.createPost(
+            title=form.title.data,
+            content=form.content.data,
+            username=form.username.data,
+            media=media_file,
+            keywords=form.keywords.data,
+            type=form.type.data,
+        )
+        flash("Post created on behalf of " + form.username.data, "success")
+        return redirect(url_for("admin"))
+
+    return render_template("admin_create_post.html", title="Create Post for User", form=form)
+
+
+@app.route("/payment")
+@login_required
+def payment():
+    return render_template('payment.html')
+
+@app.route("/add_warning_to_user", methods=["POST"])
+@login_required
+def add_warning_to_user():
+    if current_user.user_role != "SU":
+        abort(403)
+    username = request.form.get("username")
+    User.add_warning(username)
+    flash("Warning added to user!", "success")
+    return redirect(url_for("admin"))
 
 
 if __name__ == "__main__":
