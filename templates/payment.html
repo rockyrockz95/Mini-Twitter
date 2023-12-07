@@ -3,5 +3,22 @@
 {% block content %}
 <div class="container">
     <h1>Payment Page</h1>
+    
+    <!-- Tip Form -->
+    <form method="POST" action="/tip">
+        {{ form.hidden_tag() }} <!-- Include CSRF token -->
+        
+        <div class="form-group">
+            <label for="recipient_username">Recipient Username</label>
+            <input type="text" class="form-control" id="recipient_username" name="recipient_username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="amount">Amount (Credits)</label>
+            <input type="number" class="form-control" id="amount" name="amount" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Tip</button>
+    </form>
 </div>
 {% endblock %}
