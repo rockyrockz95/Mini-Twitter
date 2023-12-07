@@ -84,8 +84,6 @@ class User(UserMixin):
         cls.users.to_csv("data.csv", index=False)
         print("Registered users: ", cls.users)
 
-
-
     @classmethod
     def removeUser(cls, username):  # Function solely meant for Super Users
         cls.load_users()
@@ -226,62 +224,50 @@ class User(UserMixin):
             cls.complaints = pd.read_csv("complaints.csv")
 
         @classmethod
-        def createPost(
-            cls,
-            title,
-            content,
-            username,
-            keywords,
-            media="",
-            likes=0,
-            dislikes=0,
-            type="standard",
-            views=0,
-            complaints=0,
-            date_posted=datetime.utcnow(),
-        ):
+        def createPost(cls, title, content, username, keywords, media="", likes=0, dislikes=0, type="standard", views=0, complaints=0, date_posted=datetime.utcnow()):
             cls.load_posts()
-            new_post = pd.DataFrame(
-                [
-                    [
-                        title,
-                        content,
-                        username,
-                        media,
-                        keywords,
-                        likes,
-                        dislikes,
-                        type,
-                        views,
-                        complaints,
-                        date_posted.strftime("%m-%d-%Y"),
-                        cls.post_id,
-                    ]
-                ],
-                columns=cls.posts.columns,
-            )
 
+            # Censoring title, content, and keywords
+            censored_title, title_taboo_count = cls.censor_taboo_words(title, True)
+            censored_content, content_taboo_count = cls.censor_taboo_words(content, True)
+            censored_keywords, keywords_taboo_count = cls.censor_taboo_words(keywords, True)
+
+            total_taboo_count = title_taboo_count + content_taboo_count + keywords_taboo_count
+
+            if total_taboo_count > 2:
+                User.add_warning(username)
+                flash(f"Post not created. More than 2 taboo words found. Warning added to user {username}.", "warning")
+                return False
+
+            new_post = pd.DataFrame([[censored_title, censored_content, username, media, censored_keywords, likes, dislikes, type, views, complaints, date_posted.strftime("%m-%d-%Y"), cls.post_id]], columns=cls.posts.columns)
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
-            cls.posts.to_csv("posts.csv", header="posts", index=False)
-
+            cls.posts.to_csv("posts.csv", index=False)
             print("Current posts: ", cls.posts)
+            return True
 
         # primarily for user initiated updates
         @classmethod
         def updatePost(cls, post):
-            # check
             post_index = cls.findPost(post)
-
             if post_index is not None:
-                cls.posts.loc[post_index, ["title", "content", "media", "keywords"]] = [
-                    post.title,
-                    post.content,
-                    post.media,
-                    post.keywords,
-                ]
+                censored_title, title_taboo_count = cls.censor_taboo_words(post.title, True)
+                censored_content, content_taboo_count = cls.censor_taboo_words(post.content, True)
+                censored_keywords, keywords_taboo_count = cls.censor_taboo_words(post.keywords, True)
+
+                total_taboo_count = title_taboo_count + content_taboo_count + keywords_taboo_count
+
+                if total_taboo_count > 2:
+                    User.add_warning(post.username)
+                    flash(f"Post not updated. More than 2 taboo words found. Warning added to user {post.username}.", "warning")
+                    return False
+
+                cls.posts.loc[post_index, ["title", "content", "media", "keywords"]] = [censored_title, censored_content, post.media, censored_keywords]
                 cls.posts.to_csv("posts.csv", index=False)
+                return True
             else:
                 print("Post does not exist")
+                return False
+
 
         @classmethod
         def deletePost(cls, post):
@@ -301,6 +287,7 @@ class User(UserMixin):
                 cls.complaints.to_csv("complaints.csv", index=False)
             else:
                 print("Post does not exist")
+
 
         @classmethod
         def deletePostById(cls, post_id):  # Function solely meant for Super Users
@@ -461,12 +448,22 @@ class User(UserMixin):
             taboo_words.to_csv("taboo_word_list.csv", index=False)
 
         @classmethod
-        def censor_taboo_words(cls, text):
-            taboo_words = cls.load_taboo_words()
-            for word in taboo_words:
-                pattern = re.compile(re.escape(word), re.IGNORECASE)
-                text = pattern.sub("*" * len(word), text)
-            return text
+        def censor_taboo_words(cls, text, count_taboo=False):
+            if not isinstance(text, str):
+                return text, 0
+
+            taboo_count = 0
+            cls.taboo_word_patterns = cls.taboo_word_patterns if hasattr(cls, 'taboo_word_patterns') else {
+                re.compile(re.escape(word), re.IGNORECASE): "*" * len(word)
+                for word in cls.load_taboo_words()
+            }
+
+            for pattern, replacement in cls.taboo_word_patterns.items():
+                matches = pattern.findall(text)
+                taboo_count += len(matches)
+                text = pattern.sub(replacement, text)
+
+            return (text, taboo_count) if count_taboo else text
         
     
 
