@@ -151,12 +151,11 @@ class User(UserMixin):
             "username",
             "media",
             "keywords",
-            # could be an int, int, user pair -- determine which
             "likes",
             "dislikes",
-            # TODO: make a choice, ad or standard --> account balance monitor; Make setter
             "type",
             "views",
+            "complaints",
             "date_posted",
             "post_id",
         ]
@@ -178,7 +177,14 @@ class User(UserMixin):
 
         # check the syntax of this
         def __init__(
-            self, title, content, username, media="", keywords="", post_id=None
+            self,
+            title,
+            content,
+            username,
+            media="",
+            keywords="",
+            complaints=0,
+            post_id=None,
         ):
             self.title = title
             self.content = content
@@ -189,6 +195,7 @@ class User(UserMixin):
             self.dislikes = 0
             self.type = "standard"
             self.views = 0
+            self.complaints = complaints
             self.date_posted = datetime.utcnow()
             # keeps post_id from changing between updates
             if post_id is None:
@@ -209,12 +216,13 @@ class User(UserMixin):
             title,
             content,
             username,
-            media,
             keywords,
+            media="",
             likes=0,
             dislikes=0,
             type="standard",
             views=0,
+            complaints=0,
             date_posted=datetime.utcnow(),
         ):
             cls.load_posts()
@@ -230,6 +238,7 @@ class User(UserMixin):
                         dislikes,
                         type,
                         views,
+                        complaints,
                         date_posted.strftime("%m-%d-%Y"),
                         cls.post_id,
                     ]
@@ -240,8 +249,6 @@ class User(UserMixin):
             cls.posts = pd.concat([cls.posts, new_post], ignore_index=True)
             cls.posts.to_csv("posts.csv", header="posts", index=False)
 
-            print("Current posts: ", cls.posts)
-
         # primarily for user initiated updates
         @classmethod
         def updatePost(cls, post):
@@ -249,9 +256,10 @@ class User(UserMixin):
             post_index = cls.findPost(post)
 
             if post_index is not None:
-                cls.posts.loc[post_index, ["title", "content", "keywords"]] = [
+                cls.posts.loc[post_index, ["title", "content", "media", "keywords"]] = [
                     post.title,
                     post.content,
+                    post.media,
                     post.keywords,
                 ]
                 cls.posts.to_csv("posts.csv", index=False)
@@ -368,7 +376,7 @@ class User(UserMixin):
         def add_dislike(cls, post_id, curr_username):
             post = cls.postUserPair(post_id)[0]
             post_index = cls.findPost(post)
-            # why is this causing an error
+
             dislike_row = cls.dislikes.loc[
                 (cls.dislikes["username"] == curr_username)
                 & (cls.dislikes["post_id"] == post_id)
@@ -387,8 +395,6 @@ class User(UserMixin):
                 cls.dislikes.to_csv("dislikes.csv", index=False)
                 return 1
 
-        # method for updating views
-        # TODO: not updating
         @classmethod
         def add_view(cls, post):
             post_index = cls.findPost(post)
@@ -397,7 +403,6 @@ class User(UserMixin):
 
         @classmethod
         def createComplaint(cls, post_id, username, content):
-            cls.load_posts()
             new_complaint = pd.DataFrame(
                 [[post_id, username, content]], columns=cls.complaint_cols
             )
@@ -406,7 +411,8 @@ class User(UserMixin):
             )
             cls.complaints.to_csv("complaints.csv", index=False)
 
-            print("Current complaints: ", cls.complaints)
+            cls.posts.loc[cls.posts["post_id"] == post_id, "complaints"] += 1
+            cls.posts.to_csv("posts.csv", index=False)
 
         @classmethod
         def load_taboo_words(cls):
@@ -437,33 +443,10 @@ class User(UserMixin):
                 text = pattern.sub("*" * len(word), text)
             return text
 
-        """
-        # method for displaying top posts
-            # criteria: post has > 10 views && #likes - # dislikes > 3
-            # strategy: find the 3 posts with > 10 views (assume they exist)
-                        determine if #likes - #dislikes > 3
-                        sort last for display
-                        return those to home.html """
 
-        @classmethod
-        def trend_posts(cls):
-            cls.load_posts()
-            # results sorted by views
-            most_viewed = cls.posts[cls.posts["views"] > 10]
-            trendy_posts = most_viewed[
-                (most_viewed["likes"] - most_viewed["dislikes"]) > 3
-            ]
-            top3 = trendy_posts.iloc[:3]
-            return top3
-
-
-User.Post.trend_posts()
 # User.Post.load_posts()
 # for index, post in User.Post.posts.iterrows():
 #     print(post)
-
-
-# https://stackoverflow.com/questions/30829748/multiple-pandas-dataframe-to-one-csv-file : multiple dataFrames vertically
 
 """ TODO: Add balance maintenance
       # Every user starts with the same balance?

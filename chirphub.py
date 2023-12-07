@@ -102,11 +102,8 @@ def home():
     # need access to both to show the user and post attributes
     users = User.users
     posts = User.Post.posts
-    trending_posts = User.Post.trend_posts()
 
-    return render_template(
-        "home.html", posts=posts, users=users, trendy_posts=trending_posts
-    )
+    return render_template("home.html", posts=posts, users=users)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -124,7 +121,8 @@ def register():
 
 
 # passing in GET and POST methods allows us to submit data via the page
-# TODO: Visual feedback for incorrectly logging in
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -322,11 +320,16 @@ def update_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        if form.media.data:
+            media_file = picture_path(form.media.data, "static/post_media")
+        else:
+            media_file = ""
 
         updted_post = User.Post(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
+            media=media_file,
             keywords=form.keywords.data,
             post_id=post.post_id,
         )
@@ -380,7 +383,6 @@ def search():
     return redirect(url_for("home"))
 
 
-# TODO: If time, combine
 @app.route("/like/<post_id>")
 def like_post(post_id):
     post_id = int(float(post_id))
@@ -414,6 +416,7 @@ def dislike_post(post_id):
 # TODO: Add complaint form, finish implementation
 @app.route("/complaint/<post_id>", methods=["GET", "POST"])
 def submit_complaint(post_id):
+    post_id = int(float(post_id))
     form = PostComplaintForm()
     if form.validate_on_submit():
         User.Post.createComplaint(current_user.username, post_id, form.content.data)

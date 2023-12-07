@@ -1,7 +1,8 @@
-title,content,username,media,keywords,likes,dislikes,type,views,date_posted,post_id
-Thank You,I'd like to thank everyone who worked on this project,admin,,thanks,10,3,standard,24,11/23/2023,1
-Final Big Post Update,Posts now display user images and individual posts can be viewed,test001,,newfeature,2,10,standard,1,11/24/2023,3
-Bootstrap,Graphic Design is my passion,rockyrockz95,,artistic,2,1,standard,17,11/24/2023,5
-Added Key Words,Each post should have up to 3,rockyrockz95,,NewFeature,20,0,standard,17,11/26/2023,240
-Media Check,Encoding Issue?,real,,sad,0,0,standard,0,12-06-2023,82
-View check,hi,rockyrockz95,,,15,10,standard,12,12-06-2023,117
+title,content,username,media,keywords,likes,dislikes,type,views,complaints,date_posted,post_id
+Thank You,I'd like to thank everyone who worked on this project,admin,,thanks,10,3,standard,24,0,11/23/2023,1
+Final Big Post Update,Posts now display user images and individual posts can be viewed,test001,,newfeature,2,10,standard,1,1,11/24/2023,3
+Bootstrap,Graphic Design is my passion,rockyrockz95,,artistic,2,1,standard,17,1,11/24/2023,5
+Added Key Words,Each post should have up to 3,rockyrockz95,,NewFeature,20,0,standard,17,0,11/26/2023,240
+Media Check,Encoding Issue?,real,,sad,0,0,standard,1,1,12-06-2023,82
+View check,hi,rockyrockz95,,,15,10,standard,13,1,12-06-2023,117
+Index Check,This is so humiliating,rockyrockz95,,,0,1,standard,2,0,12-07-2023,129

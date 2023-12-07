@@ -22,8 +22,12 @@
     <small class="text-muted">{{ post.likes }}</small>
     <a class="btn btn-danger btn-sm" href="{{url_for('dislike_post', post_id=post.post_id)}}" role="button">Dislike</a>
     <small class="text-muted">{{ post.dislikes }}</small>
-    <a class="btn btn-warning btn-sm m-2" href="{{ url_for('submit_complaint', post_id=post.post_id) }}"
+    <a class="btn btn-warning btn-sm" href="{{ url_for('submit_complaint', post_id=post.post_id) }}"
       role="button">Complain</a>
+    <small class="text-muted">{{ post.complaints }}</small>
+    <button type="button" class="btn btn-primary btn-sm">
+      Views <span class="badge text-bg-secondary">{{post.views}}</span>
+    </button>
 
   </div>
 </article>
