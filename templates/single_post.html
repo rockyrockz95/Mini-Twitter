@@ -20,7 +20,7 @@
     <!-- Identical in home and single_post, TODO: try to combine in layout -->
     <h2 class="article-title">{{ post.title }}</h2>
     {% if user.user_role == "CU" %}
-    <small class="text-muted"> This is a: {{post.type}} </small>
+    <small class="text-muted"> {{post.type}} </small>
     {% endif %}
     <p class="article-content">{{ post.content }}</p>
     <!-- Key words should have some special indicator -->
