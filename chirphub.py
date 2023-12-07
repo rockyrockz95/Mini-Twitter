@@ -313,7 +313,7 @@ def new_post():
         else:
             media_file = ""
 
-        User.Post.createPost(
+        post_created = User.Post.createPost(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
@@ -321,7 +321,8 @@ def new_post():
             keywords=form.keywords.data,
             type=form.type.data,
         )
-        flash("Post created!", "success")
+        if post_created:
+            flash("Post created!", "success")
         return redirect(url_for("home"))
     return render_template(
         "new_post.html", title="New Post", legend="New Post", form=form
@@ -331,19 +332,9 @@ def new_post():
 # single post chosen/displaying individual posts in home
 @app.route("/post/<post_id>")
 def single_post(post_id):
-    # pandas indexing error without int casting
-    # urandom format requires float --> int
     post_id = int(float(post_id))
-    posts = User.Post.posts
-    ppost, user = User.Post.postUserPair(post_id)  # Get post and user
-    censored_content = User.Post.censor_taboo_words(ppost.content)  # Use ppost here
-
-    User.Post.add_view(ppost)  # Use ppost here
-
-    # Use ppost here
-    return render_template(
-        "single_post.html", posts=posts, user=user, post=ppost, content=censored_content
-    )
+    post, user = User.Post.postUserPair(post_id)
+    return render_template("single_post.html", post=post, user=user)
 
 
 @app.route("/update_post/<post_id>", methods=["GET", "POST"])
@@ -352,31 +343,23 @@ def update_post(post_id):
     post_id = int(float(post_id))
     post = User.Post.postUserPair(post_id)[0]
 
-    # Only user who made the post can update it
     if post.username != current_user.username:
         abort(403)
 
     form = UserPostForm()
     if form.validate_on_submit():
-        post.title = form.title.data
-        post.content = form.content.data
-        if form.media.data:
-            media_file = picture_path(form.media.data, "static/post_media")
-        else:
-            media_file = ""
-
-        updted_post = User.Post(
+        updated_post = User.Post(
             title=form.title.data,
             content=form.content.data,
             username=current_user.username,
-            media=media_file,
+            media=form.media.data,
             keywords=form.keywords.data,
             post_id=post.post_id,
         )
-        User.Post.updatePost(updted_post)
-        flash("Post updated", "success")
+        post_updated = User.Post.updatePost(updated_post)
+        if post_updated:
+            flash("Post updated", "success")
         return redirect(url_for("single_post", post_id=post.post_id))
-    #  only populate if existing data is in form
     elif request.method == "GET":
         form.title.data = post.title
         form.content.data = post.content
@@ -565,21 +548,23 @@ def manage_taboo_words():
 def profile(username):
     if current_user.is_authenticated:
         # Fetch user's posts from the DataFrame
-        posts = User.Post.posts[User.Post.posts["username"] == username].to_dict(
-            "records"
-        )
+        posts = User.Post.posts[User.Post.posts["username"]
+                                == username].to_dict("records")
+
+        # Apply censoring to each post's title, content, and keywords
+        for post in posts:
+            post['title'] = User.Post.censor_taboo_words(post['title'])
+            post['content'] = User.Post.censor_taboo_words(post['content'])
+            post['keywords'] = User.Post.censor_taboo_words(post['keywords'])
 
         # Fetch user data
-        user_data = User.users[User.users["username"] == username].iloc[0].to_dict()
+        user_data = User.users[User.users["username"]
+                               == username].iloc[0].to_dict()
     else:
         flash("Must be logged in to view your profile", "warning")
-        # You might want to redirect to the login page instead
         return redirect(url_for("login"))
 
-    # Pass both posts and user data to the template
-    return render_template(
-        "profile.html", username=username, posts=posts, user_data=user_data
-    )
+    return render_template("profile.html", username=username, posts=posts, user_data=user_data)
 
 
 @app.route("/admin_create_post_for_user", methods=["GET", "POST"])
@@ -611,10 +596,20 @@ def admin_create_post_for_user():
     )
 
 
-@app.route("/payment")
+@app.route("/payment", methods=["GET", "POST"])
 @login_required
 def payment():
-    return render_template("payment.html")
+    form = PaymentForm() 
+
+    if form.validate_on_submit():
+        recipient_username = form.username.data
+        amount = form.amount.data
+
+        flash(f"Sent {amount} credits to {recipient_username}.", "success")
+        return redirect(url_for("payment")) 
+
+    return render_template("payment.html", form=form)
+
 
 
 @app.route("/add_warning_to_user", methods=["POST"])
