@@ -599,7 +599,7 @@ def payment():
 
     if form.validate_on_submit():
         recipient_username = form.username.data
-        amount = form.amount.data
+        amount = form.balance.data
 
         flash(f"Sent {amount} credits to {recipient_username}.", "success")
         return redirect(url_for("payment")) 
