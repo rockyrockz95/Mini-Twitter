@@ -1,107 +1,293 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h1>Super User Dashboard</h1>
+<h1>Super User Dashboard</h1>
 
-    <!-- Section for Creating New User -->
-    <div class="container mt-4">
-        <h2>Create New User</h2>
-        <form action="{{ url_for('admin') }}" method="post">
-            {{ create_user_form.hidden_tag() }}
-            <input type="hidden" name="action" value="create_user">
-            
-            <!-- Email -->
-            <div class="form-group row mb-3">
-                <label for="email" class="col-sm-3 col-form-label">Email</label>
-                <div class="col-sm-9">
-                    {{ create_user_form.email(class="form-control") }}
-                </div>
-            </div>
+<!-- Section for Creating New User -->
+<div class="container mt-4">
+    <h2>Add User</h2>
+    <form action="{{ url_for('admin') }}" method="post">
+        {{ create_user_form.hidden_tag() }}
+        <input type="hidden" name="action" value="create_user">
 
-            <!-- Username -->
-            <div class="form-group row mb-3">
-                <label for="username" class="col-sm-3 col-form-label">Username</label>
-                <div class="col-sm-9">
-                    {{ create_user_form.username(class="form-control") }}
-                </div>
+        <!-- Email -->
+        <div class="form-group row mb-3">
+            <label for="email" class="col-sm-3 col-form-label">Email</label>
+            <div class="col-sm-9">
+                {{ create_user_form.email(class="form-control") }}
             </div>
+        </div>
 
-            <!-- Password -->
-            <div class="form-group row mb-3">
-                <label for="password" class="col-sm-3 col-form-label">Password</label>
-                <div class="col-sm-9">
-                    {{ create_user_form.password(class="form-control") }}
-                </div>
+        <!-- Username -->
+        <div class="form-group row mb-3">
+            <label for="username" class="col-sm-3 col-form-label">Username</label>
+            <div class="col-sm-9">
+                {{ create_user_form.username(class="form-control") }}
             </div>
+        </div>
 
-            <!-- User Role -->
-            <div class="form-group row mb-3">
-                <label for="role" class="col-sm-3 col-form-label">Role</label>
-                <div class="col-sm-9">
-                    <select name="role" id="role" class="form-control" required>
-                        <option value="" disabled selected>Select a role</option>
-                        <option value="SU">Super User (SU)</option>
-                        <option value="TU">Trendy User (TU)</option>
-                        <option value="OU">Ordinary User (OU)</option>
-                        <option value="CU">Corporate User (CU)</option>
-                    </select>
-                </div>
+        <!-- Password -->
+        <div class="form-group row mb-3">
+            <label for="password" class="col-sm-3 col-form-label">Password</label>
+            <div class="col-sm-9">
+                {{ create_user_form.password(class="form-control") }}
             </div>
+        </div>
 
-            <!-- Submit Button -->
-            <div class="form-group row">
-                <div class="col-sm-9 offset-sm-3">
-                    <button type="submit" class="btn btn-primary">Create User</button>
-                </div>
+        <!-- User Role -->
+        <div class="form-group row mb-3">
+            <label for="role" class="col-sm-3 col-form-label">Role</label>
+            <div class="col-sm-9">
+                <select name="role" id="role" class="form-control" required>
+                    <option value="" disabled selected>Select a role</option>
+                    <option value="SU">Super-user (SU)</option>
+                    <option value="CU">Corporate-user (CU)</option>
+                    <option value="TU">Trendy-user (TU)</option>
+                    <option value="OU">Ordinary-user (OU)</option>
+                </select>
             </div>
-        </form>
-    </div>
+        </div>
 
-    <!-- Section for Removing a User -->
-    <div class="container mt-4">
-        <h2>Remove User</h2>
-        <form action="{{ url_for('admin') }}" method="post">
-            {{ remove_user_form.hidden_tag() }}
-            <input type="hidden" name="action" value="remove_user">
-            
-            <!-- Username -->
-            <div class="form-group row mb-3">
-                <label for="username" class="col-sm-3 col-form-label">Username</label>
-                <div class="col-sm-9">
-                    {{ remove_user_form.username(class="form-control") }}
-                </div>
+        <!-- Submit Button -->
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-primary">Create User</button>
             </div>
+        </div>
+    </form>
+</div>
 
-            <!-- Submit Button -->
-            <div class="form-group row">
-                <div class="col-sm-9 offset-sm-3">
-                    <button type="submit" class="btn btn-danger">Remove User</button>
-                </div>
-            </div>
-        </form>
-    </div>
+<!-- Section for Removing a User -->
+<div class="container mt-4">
+    <h2>Delete User</h2>
+    <form action="{{ url_for('admin') }}" method="post">
+        {{ remove_user_form.hidden_tag() }}
+        <input type="hidden" name="action" value="remove_user">
 
-    <!-- Section for Removing a Post -->
-    <div class="container mt-4 mb-5">
-        <h2>Remove Post</h2>
-        <form action="{{ url_for('admin') }}" method="post">
-            {{ remove_post_form.hidden_tag() }}
-            <input type="hidden" name="action" value="remove_post">
-            
-            <!-- Post ID -->
-            <div class="form-group row mb-3">
-                <label for="post_id" class="col-sm-3 col-form-label">Post ID</label>
-                <div class="col-sm-9">
-                    {{ remove_post_form.post_id(class="form-control") }}
-                </div>
+        <!-- Username -->
+        <div class="form-group row mb-3">
+            <label for="username" class="col-sm-3 col-form-label">Username</label>
+            <div class="col-sm-9">
+                {{ remove_user_form.username(class="form-control") }}
             </div>
+        </div>
 
-            <!-- Submit Button -->
-            <div class="form-group row">
-                <div class="col-sm-9 offset-sm-3">
-                    <button type="submit" class="btn btn-warning">Remove Post</button>
-                </div>
+        <!-- Submit Button -->
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-danger">Remove User</button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
+</div>
+
+<!-- Section for Adding a Warning to a User -->
+<div class="container mt-4">
+    <h2>Add Warning to User</h2>
+    <form action="{{ url_for('add_warning_to_user') }}" method="post">
+        <div class="form-group row mb-3">
+            <label for="username" class="col-sm-3 col-form-label">Username</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name="username" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-warning">Add Warning</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<!-- Section for Displaying All Users -->
+<div class="container mt-4">
+    <h2>All Users</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Username</th>
+                <th>User Role</th>
+                <th>Balance</th>
+                <th>Warnings</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.user_role }}</td>
+                <td>{{ user.balance }}</td>
+                <td>{{ user.warnings }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Section for Creating a Post for a User -->
+<div class="container mt-4">
+    <h2>Add Message</h2>
+    <form action="{{ url_for('admin_create_post_for_user') }}" method="post" enctype="multipart/form-data">
+        <!-- CSRF Token -->
+        {{ create_post_form.csrf_token }}
+
+        <!-- Username Input -->
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" name="username" required>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group mb-2">
+            {{ create_post_form.title.label(class="form-control-label") }}
+            {{ create_post_form.title(class="form-control form-control-lg") }}
+        </div>
+
+        <!-- Post Type -->
+        <div class="form-group mb-2">
+            {{ create_post_form.type.label(class="form-control-label") }}
+            {{ create_post_form.type(class="form-control form-control-lg") }}
+        </div>
+
+        <!-- Content -->
+        <div class="form-group mb-3">
+            {{ create_post_form.content.label(class="form-control-label") }}
+            {{ create_post_form.content(class="form-control form-control-lg") }}
+        </div>
+
+        <!-- Picture File -->
+        <div class="form-group">
+            {{ create_post_form.media.label() }}
+            {{ create_post_form.media(class="form-control-file") }}
+        </div>
+
+        <!-- Keywords -->
+        <div class="form-group mb-3">
+            {{ create_post_form.keywords.label(class="form-control-label") }}
+            {{ create_post_form.keywords(class="form-control form-control-lg") }}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-outline-info">Create Post</button>
+        </div>
+    </form>
+</div>
+
+
+<!-- Section for Removing a Post -->
+<div class="container mt-4">
+    <h2>Delete Message</h2>
+    <form action="{{ url_for('admin') }}" method="post">
+        {{ remove_post_form.hidden_tag() }}
+        <input type="hidden" name="action" value="remove_post">
+
+        <!-- Post ID -->
+        <div class="form-group row mb-3">
+            <label for="post_id" class="col-sm-3 col-form-label">Post ID</label>
+            <div class="col-sm-9">
+                {{ remove_post_form.post_id(class="form-control") }}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-warning">Remove Post</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Section for Displaying All Posts -->
+<div class="container mt-4">
+    <h2>All Posts</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Post ID</th>
+                <th>Title</th>
+                <th>Username</th>
+                <th>Type</th>
+                <th>Likes</th>
+                <th>Dislikes</th>
+                <th>Views</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>{{ post.post_id }}</td>
+                <td>{{ post.title }}</td>
+                <td>{{ post.username }}</td>
+                <td>{{ post.type }}</td>
+                <td>{{ post.likes }}</td>
+                <td>{{ post.dislikes }}</td>
+                <td>{{ post.views }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Section for Managing Taboo Words -->
+<div class="container mt-4">
+    <h2>Taboo Word List Manager</h2>
+    <form action="{{ url_for('manage_taboo_words') }}" method="post">
+        {{ taboo_word_form.hidden_tag() }}
+
+        <!-- Word Input -->
+        <div class="form-group row mb-3">
+            <label for="word" class="col-sm-3 col-form-label">Word</label>
+            <div class="col-sm-9">
+                {{ taboo_word_form.word(class="form-control") }}
+            </div>
+        </div>
+
+        <!-- Add/Remove Buttons -->
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                {{ taboo_word_form.submit_add(class="btn btn-success mr-2") }}
+                {{ taboo_word_form.submit_remove(class="btn btn-danger") }}
+            </div>
+        </div>
+    </form>
+
+    <!-- List of Current Taboo Words -->
+    <h3>Current Taboo Words</h3>
+    <ul class="list-group">
+        {% for word in taboo_words %}
+        <li class="list-group-item">{{ word }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+<!-- Section for Viewing Complaints -->
+<div class="container mt-4 mb-5">
+    <h2>Complaints</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Post ID #</th>
+                <th>Content</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for complaint in complaints.itertuples() %}
+            <tr>
+                <td>{{ complaint.username }}</td>
+                <td>{{ complaint.post_id }}</td>
+                <td>{{ complaint.content }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

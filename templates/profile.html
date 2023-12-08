@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="user-profile-header">
+    <!-- Display user's profile image next to their username -->
+    <img class="rounded-circle article-img" src="{{ url_for('static', filename=user_data['image_file']) }}"
+        alt="{{ username }}'s Profile Picture">
+    <h1>{{ username }}'s Profile</h1>
+</div>
+
+<hr> <!-- Horizontal line to separate profile header and posts -->
+
+<!-- Section for user's posts -->
+<section class="user-posts">
+    {% for post in posts %}
+    <article class="media content-section mb-3">
+        <img class="rounded-circle article-img" src="{{ url_for('static', filename=user_data['image_file']) }}">
+        <div class="media-body">
+            <div class="article-metadata">
+                <a class="mr-2" href="{{ url_for('profile', username=post.username) }}">{{ post.username }}</a>
+                <small class="text-muted">{{ post.date_posted }}</small>
+
+                {% if post.username == current_user.username %}
+                <a class="btn btn-secondary btn-sm mt-1 mb-1"
+                    href="{{ url_for('update_post', post_id=post.post_id) }}">Update</a>
+                <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal"
+                    data-bs-target="#deleteModal">
+                    Delete Post
+                </button>
+                {% endif %}
+            </div>
+            <h2 class="article-title"><a href="{{ url_for('single_post', post_id=post.post_id) }}">{{ post.title }}</a>
+            </h2>
+            {% if post.user_role == "CU" %}
+            <small class="text-muted"> This is a: {{post.type}} </small>
+            {% endif %}
+            <p class="article-content">{{ post.content }}</p>
+            <a class="btn btn-success btn-sm" href="{{url_for('like_post', post_id=post.post_id)}}"
+                role="button">Like</a>
+            <small class="text-muted">{{ post.likes }}</small>
+            <a class="btn btn-danger btn-sm" href="{{url_for('dislike_post', post_id=post.post_id)}}"
+                role="button">Dislike</a>
+            <small class="text-muted">{{ post.dislikes }}</small>
+            <a class="btn btn-warning btn-sm m-2" href="{{ url_for('submit_complaint', post_id=post.post_id) }}"
+                role="button">Complain</a>
+
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -4,50 +4,72 @@
 {% block content %}
 <div class="content-section">
     <!--method is for how to send form-data get: URL variables, POST=http post transaction-->
-    <form method="POST" action="">
+    <form method="POST" action="" enctype="multipart/form-data">
         <!--hidden_tag() is part of cyber attack protection-->
         {{ form.csrf_token }}
-        <fieldset class="form-group"> 
+        <fieldset class="form-group">
             <legend class="border-bottom mb-4">
                 {{legend}}
             </legend>
-            <div class="form-group mb-2" >
+            <div class="form-group mb-2">
                 {{ form.title.label(class="form-control-label") }}
                 {% if form.title.errors %}
-                    {{form.title(class="form-control form-control-lg is-invalid")}}
-                    <div class="invalid-feedback">
-                        {% for error in form.title.errors %}
-                           <span> {{error}} </span>
-                        {% endfor %}
-                    </div>
+                {{form.title(class="form-control form-control-lg is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}
+                    <span> {{error}} </span>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    {{ form.title(class="form-control form-control-lg") }}
+                {{ form.title(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group mb-2">
+                {{ form.type.label(class="form-control-label") }}
+                {% if form.type.errors %}
+                {{form.type(class="form-control form-control-lg is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.type.errors %}
+                    <span> {{error}} </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.type(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
             <div class="form-group mb-3">
                 {{ form.content.label(class="form-control-label") }}
                 {% if form.content.errors %}
-                    {{form.content(class="form-control form-control-lg is-invalid")}}
-                    <div class="invalid-feedback">
-                        {% for error in form.content.errors %}
-                           <span> {{error}} </span>
-                        {% endfor %}
-                    </div>
+                {{form.content(class="form-control form-control-lg is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.content.errors %}
+                    <span> {{error}} </span>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    {{ form.content(class="form-control form-control-lg") }}
+                {{ form.content(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.media.label() }}
+                {{ form.media(class="form-control-file") }}
+                {% if form.media.errors %}
+                {% for error in form.media.errors %}
+                <span class="text-danger">{{ error }}</span></br>
+                {% endfor %}
                 {% endif %}
             </div>
             <div class="form-group mb-3">
                 {{ form.keywords.label(class="form-control-label") }}
                 {% if form.keywords.errors %}
-                    {{form.keywords(class="form-control form-control-lg is-invalid")}}
-                    <div class="invalid-feedback">
-                        {% for error in form.keywords.errors %}
-                           <span> {{error}} </span>
-                        {% endfor %}
-                    </div>
+                {{form.keywords(class="form-control form-control-lg is-invalid")}}
+                <div class="invalid-feedback">
+                    {% for error in form.keywords.errors %}
+                    <span> {{error}} </span>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    {{ form.keywords(class="form-control form-control-lg") }}
+                {{ form.keywords(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
         </fieldset>

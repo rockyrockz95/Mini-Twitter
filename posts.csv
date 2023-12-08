@@ -1,9 +1,12 @@
-title,content,username,keywords,date_posted,post_id
-First Post,We can add posts now,user,,11/23/2023,0
-Final Big Post Update,Posts now display user images and individual posts can be viewed,test001,,11/24/2023,3
-Bootstrap,Graphic Design is my passion,rockyrockz95,artistic,11/24/2023,5
-Sobbing in the Club,:'(,user,,11/26/2023,96
-New Post,post,rockyrockz95,,11/26/2023,42
-LEON?!?,11037,user,,11/26/2023,213
-Added Key Words,Each post should have up to 3,rockyrockz95,NewFeature,11/26/2023,240
-Sobbing in the Club,Its raining,admin,bored,11-27-2023,56
+title,content,username,media,keywords,likes,dislikes,type,views,complaints,date_posted,post_id
+Thank You,I'd like to thank everyone who worked on this project,admin,,thanks,10,3,standard,24,0,11/23/2023,1
+Final Big Post Update,Individual posts can be viewed,test001,,newfeature,2,10,standard,4,1,11/24/2023,3
+Bootstrap,Graphic Design is my passion,rockyrockz95,,artistic,20,1,standard,17,1,11/24/2023,5
+Added Key Words,Each post should have up to 3,rockyrockz95,,NewFeature,21,0,standard,18,0,11/26/2023,240
+Media Check,Encoding Issue?,real,,sad,2,1,standard,3,1,12-06-2023,82
+View check,hi,rockyrockz95,,,16,5,standard,13,1,12-06-2023,117
+Index Check,This is so humiliating,rockyrockz95,,,1,1,standard,3,0,12-07-2023,129
+Example,Post showcase,admin,,example,1,0,standard,3,0,12-07-2023,241
+Corporate Priviledge,Pay for special treatment,user,,money,1,0,ad,1,0,12-07-2023,252
+****,****,test321,,,0,0,standard,0,0,12-07-2023,79
+hi,hello,admin,,hi hey hello,0,0,standard,0,0,12-08-2023,241
